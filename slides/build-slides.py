@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Build the complete DDD Workshop PPTX deck.
-Run: /tmp/pptx-env/bin/python3 workshop/build-slides.py
+Run: /tmp/pptx-env/bin/python3 slides/build-slides.py
 """
 
 from pptx import Presentation
@@ -10,11 +10,10 @@ from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 from pptx.enum.shapes import MSO_SHAPE
 
-# ── Theme constants (matching existing deck) ──────────────────────────────
+# ── Theme constants ───────────────────────────────────────────────────────
 
 BG_LIGHT = RGBColor(0xEC, 0xEC, 0xEC)
 BG_DARK = RGBColor(0x1E, 0x1E, 0x2E)
-BG_ACCENT = RGBColor(0x2A, 0x2A, 0x3A)
 
 COLOR_DARK = RGBColor(0x22, 0x22, 0x22)
 COLOR_BLUE = RGBColor(0x22, 0x66, 0xAA)
@@ -24,12 +23,11 @@ COLOR_GRAY = RGBColor(0x44, 0x44, 0x44)
 COLOR_LIGHT_GRAY = RGBColor(0x88, 0x88, 0x88)
 COLOR_WHITE = RGBColor(0xFF, 0xFF, 0xFF)
 COLOR_ORANGE = RGBColor(0xFF, 0xA7, 0x26)
-COLOR_AMBER = RGBColor(0xFF, 0xC1, 0x07)
+COLOR_PURPLE = RGBColor(0x9C, 0x27, 0xB0)
 
-SLIDE_W = 12191695  # 13.33 inches (widescreen 16:9)
-SLIDE_H = 6858000   # 7.5 inches
+SLIDE_W = 12191695
+SLIDE_H = 6858000
 
-# Margins
 M_LEFT = Emu(731520)
 M_TOP = Emu(548640)
 M_RIGHT = Emu(731520)
@@ -38,8 +36,6 @@ CONTENT_W = SLIDE_W - M_LEFT - M_RIGHT
 prs = Presentation()
 prs.slide_width = SLIDE_W
 prs.slide_height = SLIDE_H
-
-# Use Blank layout
 BLANK_LAYOUT = prs.slide_layouts[6]
 
 
@@ -50,7 +46,6 @@ def set_bg(slide, color):
     fill = bg.fill
     fill.solid()
     fill.fore_color.rgb = color
-
 
 def add_text(slide, left, top, width, height, text, font_size=18, bold=False,
              color=COLOR_DARK, font_name=None, alignment=PP_ALIGN.LEFT,
@@ -69,44 +64,29 @@ def add_text(slide, left, top, width, height, text, font_size=18, bold=False,
     p.alignment = alignment
     return txBox
 
-
 def add_title(slide, text, color=COLOR_DARK, font_size=36):
     add_text(slide, M_LEFT, M_TOP, CONTENT_W, Emu(800000),
-             text, font_size=font_size, bold=True, color=color,
-             alignment=PP_ALIGN.LEFT)
-
-
-def add_subtitle(slide, text, top=Emu(1400000), color=COLOR_GRAY, font_size=20):
-    add_text(slide, M_LEFT, top, CONTENT_W, Emu(600000),
-             text, font_size=font_size, bold=False, color=color)
-
+             text, font_size=font_size, bold=True, color=color)
 
 def add_bullet_block(slide, items, top, color=COLOR_DARK, font_size=18,
-                     bold=False, spacing=Emu(380000), left=None, width=None,
-                     bullet_color=None):
-    """Add a list of text items as separate text boxes with bullet points."""
+                     bold=False, spacing=Emu(380000), left=None, width=None):
     if left is None:
         left = M_LEFT
     if width is None:
         width = CONTENT_W
     for i, item in enumerate(items):
-        y = top + Emu(i) * spacing if isinstance(spacing, int) else top + i * spacing
+        y = top + i * spacing
         prefix = "• " if not item.startswith(("─", "→", " ", "•")) else ""
         add_text(slide, left, y, width, spacing,
                  f"{prefix}{item}", font_size=font_size, bold=bold, color=color)
 
-
 def add_code_box(slide, text, left, top, width, height, font_size=14):
-    """Dark rounded box with monospace text."""
     shape = slide.shapes.add_shape(
-        MSO_SHAPE.ROUNDED_RECTANGLE, left, top, width, height
-    )
+        MSO_SHAPE.ROUNDED_RECTANGLE, left, top, width, height)
     shape.fill.solid()
     shape.fill.fore_color.rgb = RGBColor(0x2D, 0x2D, 0x2D)
     shape.line.fill.background()
-    # Smaller corner radius
     shape.adjustments[0] = 0.02
-
     tf = shape.text_frame
     tf.word_wrap = True
     tf.auto_size = None
@@ -121,31 +101,24 @@ def add_code_box(slide, text, left, top, width, height, font_size=14):
     p.font.name = "SF Mono"
     return shape
 
-
 def add_accent_line(slide, top, width=None, color=COLOR_BLUE):
-    """Thin horizontal accent line."""
     if width is None:
         width = CONTENT_W
     shape = slide.shapes.add_shape(
-        MSO_SHAPE.RECTANGLE, M_LEFT, top, width, Emu(36000)
-    )
+        MSO_SHAPE.RECTANGLE, M_LEFT, top, width, Emu(36000))
     shape.fill.solid()
     shape.fill.fore_color.rgb = color
     shape.line.fill.background()
     return shape
 
-
 def add_box(slide, left, top, width, height, fill_color, text="",
             font_size=16, text_color=COLOR_WHITE, bold=True):
-    """Colored rounded rectangle with centered text."""
     shape = slide.shapes.add_shape(
-        MSO_SHAPE.ROUNDED_RECTANGLE, left, top, width, height
-    )
+        MSO_SHAPE.ROUNDED_RECTANGLE, left, top, width, height)
     shape.fill.solid()
     shape.fill.fore_color.rgb = fill_color
     shape.line.fill.background()
     shape.adjustments[0] = 0.05
-
     tf = shape.text_frame
     tf.word_wrap = True
     tf.auto_size = None
@@ -155,20 +128,15 @@ def add_box(slide, left, top, width, height, fill_color, text="",
     p.font.color.rgb = text_color
     p.font.bold = bold
     p.alignment = PP_ALIGN.CENTER
-    tf.paragraphs[0].space_before = Pt(0)
-    tf.paragraphs[0].space_after = Pt(0)
     return shape
-
 
 def add_arrow(slide, left, top, width, height, color=COLOR_GRAY):
     shape = slide.shapes.add_shape(
-        MSO_SHAPE.RIGHT_ARROW, left, top, width, height
-    )
+        MSO_SHAPE.RIGHT_ARROW, left, top, width, height)
     shape.fill.solid()
     shape.fill.fore_color.rgb = color
     shape.line.fill.background()
     return shape
-
 
 def add_notes(slide, text):
     notes_slide = slide.notes_slide
@@ -181,7 +149,7 @@ def add_notes(slide, text):
 
 slide = prs.slides.add_slide(BLANK_LAYOUT)
 set_bg(slide, BG_LIGHT)
-add_accent_line(slide, Emu(2600000), color=COLOR_BLUE)
+add_accent_line(slide, Emu(2600000))
 add_text(slide, M_LEFT, Emu(2800000), CONTENT_W, Emu(1200000),
          "DDD WITH TEOB", font_size=54, bold=True, color=COLOR_DARK)
 add_text(slide, M_LEFT, Emu(4000000), CONTENT_W, Emu(600000),
@@ -194,12 +162,12 @@ add_notes(slide,
     "Welcome everyone. Before slides — ask the room:\n"
     "\"What broke in your last distributed system?\"\n"
     "Let 2-3 people share war stories. This primes them for why DDD + ES matters.\n"
-    "Then: \"Today you'll write two event-sourced aggregates from scratch.\""
+    "Then: \"Today you'll build a complete event-sourced gift card service.\""
 )
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# SLIDE 2: What You'll Learn
+# SLIDE 2: What You'll Build
 # ══════════════════════════════════════════════════════════════════════════
 
 slide = prs.slides.add_slide(BLANK_LAYOUT)
@@ -208,12 +176,13 @@ add_title(slide, "WHAT YOU'LL BUILD TODAY")
 add_accent_line(slide, Emu(1200000))
 
 items = [
-    ("1", "Model a DDD aggregate", "with commands, events, state, and invariants", COLOR_BLUE),
-    ("2", "Test it with a dedicated test kit", "— 15 tests from red to green", COLOR_BLUE),
-    ("3", "Connect two aggregates across boundaries", "with ctx.tell() and ctx.sync()", COLOR_BLUE),
+    ("1", "A DDD aggregate", "commands, events, state, invariants — pure functions", COLOR_BLUE),
+    ("2", "An HTTP service", "your aggregate becomes a live API in one line", COLOR_BLUE),
+    ("3", "A read model", "project events into query-optimized views", COLOR_GREEN),
+    ("4", "LLM integration", "ctx.sync() calls OpenRouter — same pattern as any external API", COLOR_PURPLE),
 ]
 for i, (num, title, subtitle, color) in enumerate(items):
-    y = Emu(1700000 + i * 1500000)
+    y = Emu(1600000 + i * 1250000)
     add_box(slide, M_LEFT, y, Emu(700000), Emu(700000), color,
             text=num, font_size=32, text_color=COLOR_WHITE)
     add_text(slide, Emu(1700000), y + Emu(50000), Emu(9000000), Emu(400000),
@@ -223,9 +192,9 @@ for i, (num, title, subtitle, color) in enumerate(items):
 
 add_notes(slide,
     "TIMING: 0:05–0:08\n"
-    "Frame the workshop outcomes clearly.\n"
-    "\"By the end of this session, you'll have working code — not just slides.\"\n"
-    "This is the promise. Everything builds toward these three things."
+    "\"One domain — gift cards. Four layers of capability.\"\n"
+    "\"You'll write code for 1 and 3. I'll demo 2 and 4.\"\n"
+    "\"By the end you'll have a running HTTP service with AI integration.\""
 )
 
 
@@ -247,19 +216,18 @@ questions = [
 for i, q in enumerate(questions):
     y = Emu(1700000 + i * 900000)
     add_text(slide, Emu(1000000), y, Emu(10000000), Emu(600000),
-             f"✋  {q}", font_size=22, bold=False, color=COLOR_DARK)
+             f"✋  {q}", font_size=22, color=COLOR_DARK)
 
 add_notes(slide,
     "TIMING: 0:08–0:10\n"
-    "CRITICAL: This calibrates your depth for the rest of the talk.\n"
-    "If most have DDD experience → skip basic aggregate explanation, go deeper on TEOB specifics.\n"
-    "If most are new → slow down on decide/apply, give more context.\n"
-    "If Akka/Axon users → draw parallels: \"ctx is like ActorContext, Effect is like Effect in Akka Persistence\""
+    "This calibrates your depth.\n"
+    "If most have DDD experience → skip basics, go deeper on TEOB specifics.\n"
+    "If Akka/Axon users → draw parallels throughout."
 )
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# SLIDE 4: Summary / Roadmap
+# SLIDE 4: Road Map
 # ══════════════════════════════════════════════════════════════════════════
 
 slide = prs.slides.add_slide(BLANK_LAYOUT)
@@ -267,18 +235,13 @@ set_bg(slide, BG_LIGHT)
 add_title(slide, "THE ROAD MAP")
 add_accent_line(slide, Emu(1200000))
 
-add_text(slide, M_LEFT, Emu(1500000), CONTENT_W, Emu(600000),
-         "Backend Architectures: Traditional → Latency-Critical → Event-Sourced",
-         font_size=18, color=COLOR_GRAY)
-
-# Timeline boxes
 stages = [
-    ("Traditional\nArchitecture", COLOR_LIGHT_GRAY, "10 min"),
-    ("Event Sourcing\n& Effects", COLOR_BLUE, "15 min"),
+    ("Theory:\nArchitecture\n→ ES", COLOR_LIGHT_GRAY, "20 min"),
     ("DDD ↔ TEOB\nMapping", COLOR_BLUE, "10 min"),
-    ("Exercise 1\nGift Card", COLOR_GREEN, "30 min"),
-    ("Aggregate\nCommunication", COLOR_BLUE, "10 min"),
-    ("Exercise 2\nOrder+Payment", COLOR_GREEN, "35 min"),
+    ("Exercise 1:\nAggregate", COLOR_GREEN, "30 min"),
+    ("Demo:\nHTTP Service", COLOR_BLUE, "10 min"),
+    ("Exercise 2:\nProjection", COLOR_GREEN, "20 min"),
+    ("Demo:\nLLM", COLOR_PURPLE, "10 min"),
     ("Full Picture\n& Next Steps", COLOR_ORANGE, "10 min"),
 ]
 box_w = Emu(1400000)
@@ -286,21 +249,20 @@ gap = Emu(100000)
 start_x = Emu(400000)
 for i, (label, color, time) in enumerate(stages):
     x = start_x + i * (box_w + gap)
-    add_box(slide, x, Emu(2400000), box_w, Emu(1800000), color,
-            text=label, font_size=13, text_color=COLOR_WHITE)
-    add_text(slide, x, Emu(4400000), box_w, Emu(400000),
+    add_box(slide, x, Emu(2200000), box_w, Emu(1800000), color,
+            text=label, font_size=12, text_color=COLOR_WHITE)
+    add_text(slide, x, Emu(4200000), box_w, Emu(400000),
              time, font_size=12, color=COLOR_LIGHT_GRAY,
              alignment=PP_ALIGN.CENTER)
 
-add_text(slide, M_LEFT, Emu(5400000), CONTENT_W, Emu(600000),
-         "~2 hours total  •  Two hands-on exercises  •  Everything runs locally",
+add_text(slide, M_LEFT, Emu(5200000), CONTENT_W, Emu(600000),
+         "~2 hours  •  One domain (gift cards)  •  Two exercises + two live demos",
          font_size=16, color=COLOR_GRAY, alignment=PP_ALIGN.CENTER)
 
 add_notes(slide,
     "TIMING: 0:10–0:12\n"
-    "Show the map so people know where they are at all times.\n"
-    "\"We'll alternate between short theory bursts and hands-on coding.\"\n"
-    "\"The green blocks are where YOU write code.\""
+    "\"Green blocks = you write code. Blue/purple = I demo live.\"\n"
+    "\"One domain all the way through — each layer builds on the last.\""
 )
 
 
@@ -313,7 +275,6 @@ set_bg(slide, BG_LIGHT)
 add_title(slide, "TRADITIONAL ARCHITECTURE")
 add_accent_line(slide, Emu(1200000))
 
-# Left side: the pattern
 add_text(slide, M_LEFT, Emu(1600000), Emu(5500000), Emu(400000),
          "Primary state: in database", font_size=22, bold=True, color=COLOR_DARK)
 
@@ -326,19 +287,10 @@ items = [
 ]
 add_bullet_block(slide, items, Emu(2200000), color=COLOR_GRAY, font_size=17)
 
-# Right side: diagram
-add_box(slide, Emu(7000000), Emu(1800000), Emu(1800000), Emu(700000),
-        COLOR_BLUE, "Client A", font_size=14)
-add_box(slide, Emu(7000000), Emu(2800000), Emu(1800000), Emu(700000),
-        COLOR_BLUE, "Client B", font_size=14)
-add_box(slide, Emu(9500000), Emu(2100000), Emu(2200000), Emu(1200000),
-        COLOR_RED, "Database\n(mutable)", font_size=16)
-
 add_notes(slide,
     "TIMING: 0:12–0:16\n"
     "\"This is what most of us build day to day.\"\n"
-    "Don't dwell — this is the setup for why ES is different.\n"
-    "Key pain points: in-place mutation, scaling, audit trail."
+    "Don't dwell — this is the setup for why ES is different."
 )
 
 
@@ -365,16 +317,11 @@ for i, (title, desc) in enumerate(qualities):
     add_text(slide, Emu(6800000), y + Emu(30000), Emu(5000000), Emu(400000),
              desc, font_size=16, color=COLOR_GRAY)
 
-add_notes(slide,
-    "TIMING: 0:16–0:18\n"
-    "\"What if we could have ALL of these?\"\n"
-    "This is the wish list. Event sourcing gives us most of them.\n"
-    "Pause after each — let it sink in."
-)
+add_notes(slide, "TIMING: 0:16–0:18\n\"What if we could have ALL of these?\"")
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# SLIDE 7: Complete Behaviour: Data+Logics
+# SLIDE 7: Complete Behaviour
 # ══════════════════════════════════════════════════════════════════════════
 
 slide = prs.slides.add_slide(BLANK_LAYOUT)
@@ -385,7 +332,6 @@ add_accent_line(slide, Emu(1200000))
 add_text(slide, M_LEFT, Emu(1600000), CONTENT_W, Emu(500000),
          "Business entities: orders, transactions, customers, digital twins...",
          font_size=19, color=COLOR_GRAY)
-
 add_text(slide, M_LEFT, Emu(2300000), CONTENT_W, Emu(400000),
          "Own state and interactions with the world — fully covered:",
          font_size=19, bold=True, color=COLOR_DARK)
@@ -393,18 +339,13 @@ add_text(slide, M_LEFT, Emu(2300000), CONTENT_W, Emu(400000),
 items = [
     "Incoming messages (commands) + immediate replies",
     "State changes (events applied to state)",
-    "External effect calls (to other systems, databases...)",
+    "External effect calls (to other systems, LLMs, databases...)",
     "Deferred replies and scheduled timers",
 ]
 add_bullet_block(slide, items, Emu(3000000), color=COLOR_DARK, font_size=18,
                  spacing=Emu(500000))
 
-add_notes(slide,
-    "TIMING: 0:18–0:20\n"
-    "\"An entity is a self-contained unit of behavior.\"\n"
-    "This is the DDD aggregate concept — but with a richer protocol.\n"
-    "Foreshadow: \"You'll implement exactly this pattern in 15 minutes.\""
-)
+add_notes(slide, "TIMING: 0:18–0:20\n\"You'll implement exactly this pattern in 15 minutes.\"")
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -423,90 +364,79 @@ left_items = [
     "Log of updates (journal) as source of truth",
     "Stream — append-only, immutable",
     "Never in-place updates",
-    "LSM-tree / SSTable: no locks necessary",
-    "No I/O overhead, no single master — scales!",
+    "No locks, no I/O overhead — scales!",
 ]
 add_bullet_block(slide, left_items, Emu(2200000), color=COLOR_GRAY, font_size=17)
 
-# Right side: journal visualization
 journal_x = Emu(7500000)
 add_text(slide, journal_x, Emu(1500000), Emu(4000000), Emu(400000),
          "Event Journal", font_size=16, bold=True, color=COLOR_BLUE,
          alignment=PP_ALIGN.CENTER)
 
-events = ["OrderPlaced", "ItemAdded", "ItemAdded", "OrderConfirmed", "PaymentReceived"]
+events = ["CardIssued", "CardRedeemed", "CardRedeemed", "CardCancelled"]
 for i, evt in enumerate(events):
-    y = Emu(2000000 + i * 500000)
-    add_box(slide, journal_x + Emu(200000), y, Emu(3200000), Emu(380000),
+    y = Emu(2000000 + i * 550000)
+    add_box(slide, journal_x + Emu(200000), y, Emu(3200000), Emu(420000),
             RGBColor(0x2D, 0x2D, 0x2D), text=f"#{i+1}  {evt}", font_size=13,
             text_color=COLOR_GREEN)
 
-add_text(slide, journal_x, Emu(4700000), Emu(3600000), Emu(400000),
+add_text(slide, journal_x, Emu(4300000), Emu(3600000), Emu(400000),
          "→ append only, never mutate",
          font_size=14, color=COLOR_LIGHT_GRAY, alignment=PP_ALIGN.CENTER)
 
 add_notes(slide,
     "TIMING: 0:20–0:23\n"
     "\"Instead of updating a row, we append facts.\"\n"
-    "The journal IS the source of truth. State is derived by replaying.\n"
-    "Draw parallel to git: commits are events, working directory is state.\n"
-    "\"You can always rebuild state by replaying from the beginning.\""
+    "Draw parallel to git: commits are events, working directory is state."
 )
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# SLIDE 9: Pure Event Sourcing — decide/apply loop
+# SLIDE 9: Pure Event Sourcing — decide/apply
 # ══════════════════════════════════════════════════════════════════════════
 
 slide = prs.slides.add_slide(BLANK_LAYOUT)
 set_bg(slide, BG_LIGHT)
-add_title(slide, "STREAM OF UPDATES: PURE EVENT SOURCING")
+add_title(slide, "PURE EVENT SOURCING: THE CORE LOOP")
 add_accent_line(slide, Emu(1200000))
 
-# The core loop
 add_code_box(slide,
-    "Command handler:\n"
-    "  → gets validated\n"
-    "  → may produce a reply\n"
-    "  → produces events\n\n"
     "decide(State, Command) → Effect<Event, Reply>\n\n"
-    "Events applied to state to get new state:\n\n"
+    "  → validate command against current state\n"
+    "  → produce events (or reject)\n"
+    "  → optionally reply to caller\n\n"
     "apply(State, Event) → State\n\n"
-    "// initial state = fold zero",
-    M_LEFT, Emu(1600000), Emu(6000000), Emu(3800000), font_size=17)
+    "  → pure fold: no logic, just data transformation\n"
+    "  → used for replay",
+    M_LEFT, Emu(1600000), Emu(6000000), Emu(3400000), font_size=17)
 
-# Right side: the flow diagram
 flow_x = Emu(7500000)
 add_box(slide, flow_x, Emu(1600000), Emu(2400000), Emu(600000),
         COLOR_BLUE, "Command", font_size=18)
 add_text(slide, flow_x + Emu(900000), Emu(2300000), Emu(600000), Emu(400000),
-         "↓", font_size=28, bold=True, color=COLOR_GRAY,
-         alignment=PP_ALIGN.CENTER)
+         "↓", font_size=28, bold=True, color=COLOR_GRAY, alignment=PP_ALIGN.CENTER)
 add_box(slide, flow_x, Emu(2700000), Emu(2400000), Emu(600000),
         COLOR_DARK, "decide()", font_size=18, text_color=COLOR_WHITE)
 add_text(slide, flow_x + Emu(900000), Emu(3400000), Emu(600000), Emu(400000),
-         "↓", font_size=28, bold=True, color=COLOR_GRAY,
-         alignment=PP_ALIGN.CENTER)
+         "↓", font_size=28, bold=True, color=COLOR_GRAY, alignment=PP_ALIGN.CENTER)
 add_box(slide, flow_x, Emu(3800000), Emu(2400000), Emu(600000),
         COLOR_GREEN, "Event(s)", font_size=18, text_color=COLOR_WHITE)
 add_text(slide, flow_x + Emu(900000), Emu(4500000), Emu(600000), Emu(400000),
-         "↓", font_size=28, bold=True, color=COLOR_GRAY,
-         alignment=PP_ALIGN.CENTER)
+         "↓", font_size=28, bold=True, color=COLOR_GRAY, alignment=PP_ALIGN.CENTER)
 add_box(slide, flow_x, Emu(4900000), Emu(2400000), Emu(600000),
         COLOR_ORANGE, "apply() → State'", font_size=18, text_color=COLOR_WHITE)
 
 add_notes(slide,
     "TIMING: 0:23–0:27\n"
     "THIS IS THE CORE MENTAL MODEL. Spend time here.\n"
-    "\"decide() is WHERE your business logic lives. It looks at state + command and decides what happened.\"\n"
-    "\"apply() is a PURE fold — no logic, just state transitions.\"\n"
-    "\"This separation is what makes everything testable and replayable.\"\n"
-    "Ask: \"Why can't we put business logic in apply?\" → Because replay would re-validate."
+    "\"decide() is WHERE your business logic lives.\"\n"
+    "\"apply() is PURE — no logic, just state transitions.\"\n"
+    "Ask: \"Why can't we put logic in apply?\" → Because replay would re-validate."
 )
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# SLIDE 10: Event Sourcing: Effects
+# SLIDE 10: Effects
 # ══════════════════════════════════════════════════════════════════════════
 
 slide = prs.slides.add_slide(BLANK_LAYOUT)
@@ -515,14 +445,14 @@ add_title(slide, "EVENT SOURCING: EFFECTS")
 add_accent_line(slide, Emu(1200000))
 
 add_text(slide, M_LEFT, Emu(1600000), CONTENT_W, Emu(400000),
-         "decide() doesn't just return events — it returns an Effect describing what should happen:",
+         "decide() returns an Effect describing what should happen:",
          font_size=18, color=COLOR_GRAY)
 
 effects = [
     ("persist(event)", "Store event(s) in the journal", COLOR_BLUE),
     ("reply(value)", "Respond to the caller immediately", COLOR_BLUE),
     ("andReply(persist(...), reply)", "Persist + reply atomically", COLOR_BLUE),
-    ("andRun(persist(...), sideEffect)", "Persist, then run async side effect", COLOR_BLUE),
+    ("andRun(persist(...), sideEffect)", "Persist, then run async side effect", COLOR_ORANGE),
     ("done()", "No-op — acknowledge without action", COLOR_LIGHT_GRAY),
 ]
 for i, (code, desc, color) in enumerate(effects):
@@ -531,21 +461,16 @@ for i, (code, desc, color) in enumerate(effects):
     add_text(slide, Emu(5900000), y + Emu(80000), Emu(5500000), Emu(400000),
              desc, font_size=17, color=color, bold=True)
 
-add_text(slide, M_LEFT, Emu(5900000), CONTENT_W, Emu(400000),
-         "Fully describes complete behaviour. Synchronous effects, timers, commands to other entities, deferred replies.",
-         font_size=15, color=COLOR_LIGHT_GRAY)
-
 add_notes(slide,
     "TIMING: 0:27–0:30\n"
-    "\"The Effect type is the key innovation. It's not just events — it's a full program.\"\n"
     "Highlight persist + andReply — they'll use these in Exercise 1.\n"
-    "Mention andRun — they'll use this in Exercise 2.\n"
-    "\"Think of it as: decide returns a recipe, the runtime executes it.\""
+    "Mention andRun — they'll see it in the LLM demo.\n"
+    "\"decide returns a recipe, the runtime executes it.\""
 )
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# SLIDE 11: DDD ↔ TEOB — Where They Meet (mapping table)
+# SLIDE 11: DDD ↔ TEOB Mapping Table
 # ══════════════════════════════════════════════════════════════════════════
 
 slide = prs.slides.add_slide(BLANK_LAYOUT)
@@ -553,28 +478,22 @@ set_bg(slide, BG_LIGHT)
 add_title(slide, "THE DDD CORE MAPS 1:1")
 add_accent_line(slide, Emu(1200000))
 
-# Build table
 rows_data = [
     ("DDD", "TEOB", "Notes"),
-    ("Aggregate", "Aggregate<S, C, E, R>", "The consistency boundary. One category = one type."),
+    ("Aggregate", "Aggregate<S, C, E, R>", "The consistency boundary."),
     ("Aggregate ID", "EntityId", "Branded string, same concept."),
     ("Command", "Command (type param)", "Inbound intent."),
     ("Domain Event", "Event (type param)", "Fact that happened."),
-    ("Decision function", "decide(state, cmd, ctx)", '"Given this state and this command, what happens?"'),
-    ("State fold / evolve", "apply(state, event)", "Pure left-fold. The event applicator."),
-    ("Initial state", "initial(id)", 'The "zero" of the fold.'),
+    ("Decision function", "decide(state, cmd, ctx)", "\"Given state + command, what happens?\""),
+    ("State fold / evolve", "apply(state, event)", "Pure left-fold."),
+    ("Initial state", "initial(id)", "The \"zero\" of the fold."),
     ("Invariant", "invariants[]", "Executable, testable — faithful to DDD intent."),
 ]
 
-table_top = Emu(1500000)
-table_left = M_LEFT
 col_widths = [Emu(2500000), Emu(3500000), Emu(5500000)]
-row_height = Emu(500000)
-
 table_shape = slide.shapes.add_table(
-    len(rows_data), 3, table_left, table_top,
-    sum(col_widths), row_height * len(rows_data)
-)
+    len(rows_data), 3, M_LEFT, Emu(1500000),
+    sum(col_widths), Emu(500000) * len(rows_data))
 table = table_shape.table
 
 for ci, w in enumerate(col_widths):
@@ -597,17 +516,14 @@ for ri, row_data in enumerate(rows_data):
             p.font.size = Pt(13)
         else:
             p.font.color.rgb = COLOR_DARK if ci == 0 else COLOR_GRAY
-
         cell.margin_left = Pt(8)
         cell.margin_top = Pt(4)
 
 add_notes(slide,
     "TIMING: 0:30–0:35\n"
-    "THIS IS THE AHA SLIDE. Go row by row.\n"
-    "\"If you know DDD, you already know TEOB. The mapping is 1:1.\"\n"
-    "Emphasize: decide is the decision function, apply is the evolve/fold.\n"
-    "\"Invariants are first-class — executable and testable, not just documentation.\"\n"
-    "Pause here. Ask: \"Any questions before we see where TEOB goes beyond DDD?\""
+    "THE AHA SLIDE. Go row by row.\n"
+    "\"If you know DDD, you already know TEOB.\"\n"
+    "Pause for questions before Exercise 1."
 )
 
 
@@ -621,11 +537,11 @@ add_title(slide, "BEYOND THE BLUE BOOK")
 add_accent_line(slide, Emu(1200000))
 
 beyond = [
-    ("Effect ADT", "DDD aggregates return events (or throw). TEOB returns a declarative Effect<Event, Reply> — a program describing what should happen."),
-    ("Reply as first-class", "DDD aggregates are void or throw. TEOB: persist(...).andReply(...) atomically. CQRS-with-response."),
-    ("EffectControl (ctx)", "In strict DDD, the aggregate is pure. ctx gives access to timers, cross-entity messaging, external effects."),
-    ("Stash/Unstash", "Actor model concept (Akka heritage). Buffers commands during certain states."),
-    ("Invariants", "Closer to DDD than most ES frameworks. Executable and testable — faithful to why the boundary exists."),
+    ("Effect ADT", "Declarative Effect<Event, Reply> — a program describing what should happen."),
+    ("Reply as first-class", "persist(...).andReply(...) atomically. CQRS-with-response."),
+    ("EffectControl (ctx)", "Timers, cross-entity messaging, external effects (ctx.sync, ctx.tell)."),
+    ("Invariants", "Executable and testable — faithful to why the boundary exists."),
+    ("Projections", "Event → read model. Same pure fold pattern, optimized for queries."),
 ]
 for i, (title, desc) in enumerate(beyond):
     y = Emu(1700000 + i * 900000)
@@ -634,16 +550,10 @@ for i, (title, desc) in enumerate(beyond):
     add_text(slide, Emu(3700000), y, Emu(8000000), Emu(700000),
              desc, font_size=15, color=COLOR_GRAY)
 
-add_text(slide, M_LEFT, Emu(6200000), CONTENT_W, Emu(400000),
-         "Core loop maps 1:1 to DDD. TEOB adds: effect system + actor model + infrastructure.",
-         font_size=16, bold=True, color=COLOR_DARK)
-
 add_notes(slide,
     "TIMING: 0:35–0:38\n"
     "\"The core is DDD. The extras are what make it practical.\"\n"
-    "Don't go deep on Stash — mention it exists, move on.\n"
-    "Emphasize Effect ADT and Reply — they'll use these immediately.\n"
-    "\"ctx is your toolbox. In Exercise 1 you won't need it. In Exercise 2, it's everything.\""
+    "Mention projections — they'll build one in Exercise 2."
 )
 
 
@@ -658,9 +568,9 @@ add_accent_line(slide, Emu(1200000))
 
 items = [
     "Complete entity behaviour — as pure functions",
-    "Codecs — serialisable, on-the-wire representation (Command, Reply, Event, State)",
-    "Agnostic to execution and persistence: scalability / durability / integrity",
-    "Multiple runtimes: in-memory, SQLite, PostgreSQL, ... (same aggregate code)",
+    "Codecs — serialisable representation (Command, Reply, Event, State)",
+    "Agnostic to execution and persistence",
+    "Multiple runtimes: in-memory, SQLite, PostgreSQL (same aggregate code)",
 ]
 add_bullet_block(slide, items, Emu(1700000), color=COLOR_DARK, font_size=19,
                  spacing=Emu(800000))
@@ -675,13 +585,12 @@ add_code_box(slide,
 add_notes(slide,
     "TIMING: 0:38–0:40\n"
     "\"Your business logic doesn't know or care about the database.\"\n"
-    "\"In the exercises, we use InMemoryRuntime. In production, swap to Postgres. Zero code changes.\"\n"
-    "This is the payoff of the separation."
+    "\"In exercises, we use InMemoryRuntime. In production, swap to Postgres.\""
 )
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# SLIDE 14: Exercise 1 Brief — Gift Card
+# SLIDE 14: Exercise 1 Brief — Gift Card Aggregate
 # ══════════════════════════════════════════════════════════════════════════
 
 slide = prs.slides.add_slide(BLANK_LAYOUT)
@@ -689,14 +598,12 @@ set_bg(slide, BG_LIGHT)
 add_title(slide, "EXERCISE 1: GIFT CARD AGGREGATE", color=COLOR_GREEN, font_size=34)
 add_accent_line(slide, Emu(1200000), color=COLOR_GREEN)
 
-# Domain model
 add_code_box(slide,
     "Commands:  Issue | Redeem | Cancel | GetBalance\n"
     "Events:    Issued | Redeemed | Cancelled\n"
-    "State:     { balance, status }",
+    "State:     { balance, status, recipientName }",
     M_LEFT, Emu(1600000), Emu(6500000), Emu(1000000), font_size=17)
 
-# Business rules
 add_text(slide, M_LEFT, Emu(2900000), Emu(6000000), Emu(400000),
          "Business rules to implement:", font_size=18, bold=True, color=COLOR_DARK)
 rules = [
@@ -708,26 +615,18 @@ rules = [
 add_bullet_block(slide, rules, Emu(3400000), color=COLOR_DARK, font_size=17,
                  spacing=Emu(420000))
 
-# Test command
 add_code_box(slide,
-    "npx vitest run workshop/exercise1-gift-card/gift-card.test.ts",
-    M_LEFT, Emu(5400000), Emu(8500000), Emu(500000), font_size=16)
+    "npm run test:aggregate",
+    M_LEFT, Emu(5400000), Emu(5500000), Emu(500000), font_size=16)
 
-add_text(slide, Emu(9600000), Emu(5450000), Emu(3000000), Emu(500000),
-         "15 tests.\nMake them green.", font_size=22, bold=True, color=COLOR_GREEN)
-
-# Hint
-add_text(slide, M_LEFT, Emu(6200000), CONTENT_W, Emu(400000),
-         "Start with Issue → GetBalance → Redeem → Cancel → Invariants     |     Stuck? See HINTS.md",
-         font_size=14, color=COLOR_LIGHT_GRAY)
+add_text(slide, Emu(6500000), Emu(5450000), Emu(5000000), Emu(500000),
+         "15 tests. Make them green.", font_size=22, bold=True, color=COLOR_GREEN)
 
 add_notes(slide,
     "TIMING: 0:40–0:42\n"
-    "LIVE DEMO: Open terminal, run the test command. Show 13 failing tests.\n"
-    "\"Your job for the next 30 minutes: make them green.\"\n"
-    "\"Start with Issue — it's the simplest. The hints are in the file.\"\n"
-    "Walk through the file structure briefly: gift-card.ts has TODOs, tests tell you what to expect.\n"
-    "\"Solution is in gift-card.solution.ts — but try first!\""
+    "LIVE DEMO: Run tests. Show 13 failing.\n"
+    "\"Start with Issue — it's the simplest. The hints are in HINTS-aggregate.md.\"\n"
+    "\"Solution is in aggregate.solution.ts — but try first!\""
 )
 
 
@@ -738,24 +637,22 @@ add_notes(slide,
 slide = prs.slides.add_slide(BLANK_LAYOUT)
 set_bg(slide, BG_DARK)
 add_text(slide, M_LEFT, Emu(2200000), CONTENT_W, Emu(1000000),
-         "EXERCISE 1: GIFT CARD", font_size=48, bold=True,
+         "EXERCISE 1: AGGREGATE", font_size=48, bold=True,
          color=COLOR_GREEN, alignment=PP_ALIGN.CENTER)
 add_text(slide, M_LEFT, Emu(3400000), CONTENT_W, Emu(600000),
          "30 minutes  •  15 tests  •  implement decide() + invariants",
          font_size=22, color=COLOR_LIGHT_GRAY, alignment=PP_ALIGN.CENTER)
 add_text(slide, M_LEFT, Emu(4600000), CONTENT_W, Emu(400000),
-         "npx vitest run workshop/exercise1-gift-card/gift-card.test.ts",
-         font_size=16, color=COLOR_GREEN, alignment=PP_ALIGN.CENTER,
+         "npm run test:aggregate",
+         font_size=18, color=COLOR_GREEN, alignment=PP_ALIGN.CENTER,
          font_name="SF Mono")
 
 add_notes(slide,
-    "TIMING: 0:42–1:12 (30 min work time)\n"
-    "LEAVE THIS SLIDE UP during exercise.\n\n"
-    "Walk the room / monitor chat.\n"
-    "At 15 min: \"How many tests are green so far? Show of hands: more than 5?\"\n"
-    "At 15 min: Show Hint 1 if people are stuck (the Issue case pattern).\n"
-    "At 25 min: If significant portion stuck, live-code the Issue case on screen.\n"
-    "At 28 min: \"2 minutes left — if you haven't finished, that's fine. We'll review together.\""
+    "TIMING: 0:42–1:12 (30 min)\n"
+    "LEAVE THIS SLIDE UP.\n"
+    "At 15 min: \"How many tests green? More than 5?\"\n"
+    "At 25 min: Live-code Issue case if people are stuck.\n"
+    "At 28 min: \"2 minutes left.\""
 )
 
 
@@ -768,36 +665,72 @@ set_bg(slide, BG_LIGHT)
 add_title(slide, "EXERCISE 1: DEBRIEF")
 add_accent_line(slide, Emu(1200000))
 
-add_text(slide, M_LEFT, Emu(1700000), CONTENT_W, Emu(400000),
-         "What you just built:", font_size=20, bold=True, color=COLOR_DARK)
-
 takeaways = [
     "decide() — all business logic in one place, pattern-matched on command tag",
     "apply() — pure state fold, no logic, just data transformation",
-    "invariants[] — executable contracts that guard your aggregate's consistency",
+    "invariants[] — executable contracts that guard consistency",
     "Effect ADT — persist(), reply(), andReply() — declarative, composable",
-    "AggregateTestKit — test without infrastructure, test the domain directly",
+    "AggregateTestKit — test the domain directly, no infrastructure",
 ]
-add_bullet_block(slide, takeaways, Emu(2300000), color=COLOR_DARK, font_size=17,
+add_bullet_block(slide, takeaways, Emu(1700000), color=COLOR_DARK, font_size=17,
                  spacing=Emu(550000))
 
 add_code_box(slide,
-    "// The core pattern you'll use everywhere:\n"
+    "// The core pattern:\n"
     "if (invalid) return reply({ tag: 'Rejected', reason: '...' })\n"
     "return andReply(persist(event), { tag: 'Ok' })",
-    M_LEFT, Emu(5300000), Emu(8500000), Emu(1000000), font_size=15)
+    M_LEFT, Emu(5200000), Emu(8500000), Emu(1000000), font_size=15)
 
 add_notes(slide,
     "TIMING: 1:12–1:17\n"
-    "Live-code the full solution if needed. Walk through each case.\n"
-    "\"Notice: no database, no HTTP, no framework setup. Just domain logic.\"\n"
-    "\"The test kit runs decide/apply in memory — pure unit tests.\"\n"
-    "Ask: \"What surprised you? What felt different from how you usually write this?\""
+    "Live-code the solution if needed.\n"
+    "\"No database, no HTTP, no framework setup. Just domain logic.\"\n"
+    "Ask: \"What surprised you?\""
 )
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# SLIDE 17: Break
+# SLIDE 17: Demo — HTTP Service
+# ══════════════════════════════════════════════════════════════════════════
+
+slide = prs.slides.add_slide(BLANK_LAYOUT)
+set_bg(slide, BG_LIGHT)
+add_title(slide, "DEMO: YOUR AGGREGATE AS AN API", color=COLOR_BLUE)
+add_accent_line(slide, Emu(1200000), color=COLOR_BLUE)
+
+add_text(slide, M_LEFT, Emu(1600000), CONTENT_W, Emu(400000),
+         "Your decide() function is now a live HTTP endpoint:",
+         font_size=19, color=COLOR_GRAY)
+
+add_code_box(slide,
+    "# Issue a gift card\n"
+    "curl -X POST http://localhost:3000/api/gift-card/card-1 \\\n"
+    "  -H 'Content-Type: application/json' \\\n"
+    "  -d '{\"tag\":\"Issue\",\"amount\":100,\"recipientName\":\"Alice\"}'\n"
+    "→ {\"tag\":\"Ok\"}\n\n"
+    "# Redeem\n"
+    "curl -X POST ... -d '{\"tag\":\"Redeem\",\"amount\":30}'\n"
+    "→ {\"tag\":\"Ok\"}\n\n"
+    "# Reject (too much)\n"
+    "curl -X POST ... -d '{\"tag\":\"Redeem\",\"amount\":999}'\n"
+    "→ 400 {\"tag\":\"Rejected\",\"reason\":\"Insufficient balance\"}",
+    M_LEFT, Emu(2200000), Emu(8500000), Emu(3200000), font_size=14)
+
+add_text(slide, M_LEFT, Emu(5700000), CONTENT_W, Emu(400000),
+         "Reply → HTTP response.  Rejection → 400.  Timeout → 504.  ETag for optimistic concurrency.",
+         font_size=15, bold=True, color=COLOR_BLUE)
+
+add_notes(slide,
+    "TIMING: 1:17–1:22\n"
+    "LIVE DEMO: Run `npm start`, then curl commands.\n"
+    "Show: Ok reply → 200, Rejected → 400, ETag header.\n"
+    "\"Zero wiring code. aggregateRoutes() generates everything from your aggregate.\"\n"
+    "\"Your decide() is the API contract.\""
+)
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# SLIDE 18: Break
 # ══════════════════════════════════════════════════════════════════════════
 
 slide = prs.slides.add_slide(BLANK_LAYOUT)
@@ -809,166 +742,148 @@ add_text(slide, M_LEFT, Emu(3600000), CONTENT_W, Emu(600000),
          "5 minutes  •  stretch  •  refill coffee",
          font_size=22, color=COLOR_LIGHT_GRAY, alignment=PP_ALIGN.CENTER)
 add_text(slide, M_LEFT, Emu(4800000), CONTENT_W, Emu(400000),
-         "Next up: two aggregates talking to each other",
-         font_size=18, color=COLOR_BLUE, alignment=PP_ALIGN.CENTER)
+         "Next up: the read side — projections",
+         font_size=18, color=COLOR_GREEN, alignment=PP_ALIGN.CENTER)
 
-add_notes(slide,
-    "TIMING: 1:17–1:22\n"
-    "CRITICAL BREAK. People need to reset before the harder exercise.\n"
-    "\"When we come back: the fun part — two aggregates communicating.\""
-)
+add_notes(slide, "TIMING: 1:22–1:27")
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# SLIDE 18: How Do Aggregates Talk?
+# SLIDE 19: Theory — Write Side vs Read Side
 # ══════════════════════════════════════════════════════════════════════════
 
 slide = prs.slides.add_slide(BLANK_LAYOUT)
 set_bg(slide, BG_LIGHT)
-add_title(slide, "HOW DO AGGREGATES TALK?")
+add_title(slide, "WRITE SIDE VS READ SIDE")
 add_accent_line(slide, Emu(1200000))
 
-# Diagram: Order → Payment → Gateway
-box_h = Emu(1200000)
-box_w_agg = Emu(2800000)
-box_w_gw = Emu(2200000)
-
-add_box(slide, Emu(800000), Emu(2000000), box_w_agg, box_h,
-        COLOR_BLUE, "Order\nAggregate", font_size=20)
-add_box(slide, Emu(5000000), Emu(2000000), box_w_agg, box_h,
-        COLOR_GREEN, "Payment\nAggregate", font_size=20, text_color=COLOR_WHITE)
-add_box(slide, Emu(9200000), Emu(2000000), box_w_gw, box_h,
-        COLOR_ORANGE, "Payment\nGateway", font_size=20, text_color=COLOR_WHITE)
-
-# Arrows with labels
-add_text(slide, Emu(3300000), Emu(1600000), Emu(2000000), Emu(400000),
-         "ctx.tell(Charge)", font_size=14, color=COLOR_DARK,
-         alignment=PP_ALIGN.CENTER, font_name="SF Mono")
-add_text(slide, Emu(3300000), Emu(3300000), Emu(2000000), Emu(400000),
-         "ctx.tell(Confirm)", font_size=14, color=COLOR_DARK,
-         alignment=PP_ALIGN.CENTER, font_name="SF Mono")
-add_text(slide, Emu(7500000), Emu(1600000), Emu(2000000), Emu(400000),
-         "ctx.sync()", font_size=14, color=COLOR_DARK,
-         alignment=PP_ALIGN.CENTER, font_name="SF Mono")
-
-# Arrow shapes
-add_arrow(slide, Emu(3700000), Emu(2200000), Emu(1200000), Emu(300000), COLOR_LIGHT_GRAY)
-# Return arrow (left-pointing, we'll just use text)
-add_text(slide, Emu(3700000), Emu(3000000), Emu(1200000), Emu(300000),
-         "←←←←←←←←", font_size=16, color=COLOR_LIGHT_GRAY,
-         alignment=PP_ALIGN.CENTER)
-add_arrow(slide, Emu(7900000), Emu(2200000), Emu(1200000), Emu(300000), COLOR_LIGHT_GRAY)
-
-# Explanation
-explanations = [
-    ("CategoryRegistration", "type-safe cross-entity contract (compile-time checked)"),
-    ("ctx.tell()", "fire-and-forget command across aggregate boundaries"),
-    ("ctx.sync()", "call external system, result comes back as a command (callback pattern)"),
-    ("Key principle:", "commands cross boundaries, events stay within"),
+# Left: write side
+add_box(slide, M_LEFT, Emu(1800000), Emu(4800000), Emu(2500000),
+        COLOR_BLUE, "", font_size=14)
+add_text(slide, Emu(900000), Emu(1900000), Emu(4400000), Emu(400000),
+         "WRITE SIDE (aggregate)", font_size=18, bold=True, color=COLOR_WHITE)
+write_items = [
+    "decide() — validates, produces events",
+    "apply() — state for decisions",
+    "Optimized for consistency",
+    "One entity at a time",
 ]
-for i, (term, desc) in enumerate(explanations):
-    y = Emu(4000000 + i * 550000)
-    add_text(slide, M_LEFT, y, Emu(2800000), Emu(400000),
-             term, font_size=17, bold=True, color=COLOR_BLUE, font_name="SF Mono" if i < 3 else None)
-    add_text(slide, Emu(3700000), y, Emu(8000000), Emu(400000),
-             f"— {desc}", font_size=17, color=COLOR_GRAY)
+for i, item in enumerate(write_items):
+    add_text(slide, Emu(900000), Emu(2400000 + i * 400000), Emu(4400000), Emu(350000),
+             f"• {item}", font_size=14, color=COLOR_WHITE)
+
+# Right: read side
+add_box(slide, Emu(6200000), Emu(1800000), Emu(4800000), Emu(2500000),
+        COLOR_GREEN, "", font_size=14)
+add_text(slide, Emu(6400000), Emu(1900000), Emu(4400000), Emu(400000),
+         "READ SIDE (projection)", font_size=18, bold=True, color=COLOR_WHITE)
+read_items = [
+    "evolve() — builds query-optimized views",
+    "Can include derived data (counts, aggregations)",
+    "Optimized for queries",
+    "Can span multiple entities",
+]
+for i, item in enumerate(read_items):
+    add_text(slide, Emu(6400000), Emu(2400000 + i * 400000), Emu(4400000), Emu(350000),
+             f"• {item}", font_size=14, color=COLOR_WHITE)
+
+# Arrow
+add_text(slide, Emu(5100000), Emu(2700000), Emu(1000000), Emu(400000),
+         "→", font_size=36, bold=True, color=COLOR_ORANGE, alignment=PP_ALIGN.CENTER)
+
+add_text(slide, M_LEFT, Emu(4800000), CONTENT_W, Emu(400000),
+         "Same pattern: pure function, event in → new state out",
+         font_size=20, bold=True, color=COLOR_DARK, alignment=PP_ALIGN.CENTER)
+
+add_code_box(slide,
+    "// Write side                          // Read side\n"
+    "apply(state, event) → State           evolve(view, event) → View",
+    M_LEFT, Emu(5400000), CONTENT_W, Emu(600000), font_size=16)
 
 add_notes(slide,
-    "TIMING: 1:22–1:30\n"
-    "\"In Exercise 1, your aggregate was alone. Now: two aggregates collaborate.\"\n"
-    "Walk through the diagram left-to-right:\n"
-    "1. Order receives PlaceOrder, persists OrderPlaced, tells Payment to Charge\n"
-    "2. Payment receives Charge, calls gateway via ctx.sync()\n"
-    "3. Gateway result comes back as a command (ChargeSucceeded/Failed)\n"
-    "4. Payment tells Order: ConfirmPayment or RejectPayment\n\n"
-    "KEY INSIGHT: \"Commands cross boundaries. Events stay within their aggregate.\"\n"
-    "Ask: \"Why not just emit events and let the other aggregate listen?\" → Coupling, ordering, boundaries."
+    "TIMING: 1:27–1:32\n"
+    "\"You already know the pattern — apply and evolve are the same shape.\"\n"
+    "\"The difference: evolve builds views optimized for queries, not decisions.\"\n"
+    "\"A view can include transactionCount — something the aggregate doesn't track.\""
 )
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# SLIDE 19: Exercise 2 Brief — Order + Payment
+# SLIDE 20: Exercise 2 Brief — Projection
 # ══════════════════════════════════════════════════════════════════════════
 
 slide = prs.slides.add_slide(BLANK_LAYOUT)
 set_bg(slide, BG_LIGHT)
-add_title(slide, "EXERCISE 2: ORDER + PAYMENT", color=COLOR_GREEN, font_size=34)
+add_title(slide, "EXERCISE 2: GIFT CARD PROJECTION", color=COLOR_GREEN, font_size=34)
 add_accent_line(slide, Emu(1200000), color=COLOR_GREEN)
 
-# Two columns
-add_text(slide, M_LEFT, Emu(1600000), Emu(5000000), Emu(400000),
-         "Order (given — study this first)", font_size=20, bold=True, color=COLOR_GREEN)
-order_items = [
-    "PlaceOrder → persists OrderPlaced",
-    "→ tells Payment to Charge",
-    "→ waits for ConfirmPayment / RejectPayment callback",
-]
-add_bullet_block(slide, order_items, Emu(2100000), color=COLOR_DARK, font_size=16,
-                 spacing=Emu(380000))
+add_text(slide, M_LEFT, Emu(1600000), CONTENT_W, Emu(400000),
+         "Build a read model from gift card events:", font_size=19, color=COLOR_GRAY)
 
-add_text(slide, M_LEFT, Emu(3400000), Emu(5000000), Emu(400000),
-         "Payment (you build)", font_size=20, bold=True, color=COLOR_BLUE)
-payment_items = [
-    "Charge → persist ChargeRequested → ctx.sync(gateway)",
-    "ChargeSucceeded → persist + ctx.tell(Order, ConfirmPayment)",
-    "ChargeFailed → persist + ctx.tell(Order, RejectPayment)",
-    "GetStatus → reply with current status",
-]
-add_bullet_block(slide, payment_items, Emu(3900000), color=COLOR_DARK, font_size=16,
-                 spacing=Emu(380000))
-
-# Test command
 add_code_box(slide,
-    "npx vitest run workshop/exercise2-order-payment/payment.test.ts",
-    M_LEFT, Emu(5600000), Emu(8500000), Emu(500000), font_size=16)
+    "GiftCardView {\n"
+    "  balance, status, recipientName,\n"
+    "  encouragement,        // from LLM (demo)\n"
+    "  transactionCount      // derived — aggregate doesn't track this!\n"
+    "}",
+    M_LEFT, Emu(2200000), Emu(6500000), Emu(1400000), font_size=16)
 
-add_text(slide, Emu(9600000), Emu(5650000), Emu(3000000), Emu(500000),
-         "7 tests: 5 unit\n+ 2 integration", font_size=20, bold=True, color=COLOR_GREEN)
+add_text(slide, M_LEFT, Emu(3900000), Emu(6000000), Emu(400000),
+         "Implement evolve() — same pattern as apply():", font_size=18, bold=True, color=COLOR_DARK)
+cases = [
+    "Issued → set balance, status, recipientName",
+    "Redeemed → subtract amount, increment transactionCount",
+    "Cancelled → zero balance, set status",
+    "EncouragementSet → set encouragement text",
+]
+add_bullet_block(slide, cases, Emu(4400000), color=COLOR_DARK, font_size=16,
+                 spacing=Emu(380000))
+
+add_code_box(slide,
+    "npm run test:projection",
+    M_LEFT, Emu(5900000), Emu(5500000), Emu(500000), font_size=16)
+
+add_text(slide, Emu(6500000), Emu(5950000), Emu(5000000), Emu(500000),
+         "8 tests. Make them green.", font_size=22, bold=True, color=COLOR_GREEN)
 
 add_notes(slide,
-    "TIMING: 1:30–1:35\n"
-    "LIVE DEMO: Open order.ts and walk through the code.\n"
-    "\"This is the pattern. Study PlaceOrder — see how andRun + ctx.tell works.\"\n"
-    "\"Your job: implement the Payment side using the same patterns.\"\n"
-    "\"The integration tests are the wow moment — two aggregates in one runtime, full flow.\"\n"
-    "Hint: Start with GetStatus (easiest), then Charge, then the callbacks."
+    "TIMING: 1:32–1:35\n"
+    "\"You already know the pattern from apply(). This is the same thing, for queries.\"\n"
+    "\"The key difference: transactionCount. The aggregate doesn't track this — the projection does.\""
 )
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# SLIDE 20: Exercise 2 — Work Time
+# SLIDE 21: Exercise 2 — Work Time
 # ══════════════════════════════════════════════════════════════════════════
 
 slide = prs.slides.add_slide(BLANK_LAYOUT)
 set_bg(slide, BG_DARK)
 add_text(slide, M_LEFT, Emu(2200000), CONTENT_W, Emu(1000000),
-         "EXERCISE 2: ORDER + PAYMENT", font_size=44, bold=True,
+         "EXERCISE 2: PROJECTION", font_size=48, bold=True,
          color=COLOR_GREEN, alignment=PP_ALIGN.CENTER)
 add_text(slide, M_LEFT, Emu(3400000), CONTENT_W, Emu(600000),
-         "35 minutes  •  7 tests  •  implement Payment decide()",
+         "20 minutes  •  8 tests  •  implement evolve()",
          font_size=22, color=COLOR_LIGHT_GRAY, alignment=PP_ALIGN.CENTER)
 add_text(slide, M_LEFT, Emu(4600000), CONTENT_W, Emu(400000),
-         "npx vitest run workshop/exercise2-order-payment/payment.test.ts",
-         font_size=16, color=COLOR_GREEN, alignment=PP_ALIGN.CENTER,
+         "npm run test:projection",
+         font_size=18, color=COLOR_GREEN, alignment=PP_ALIGN.CENTER,
          font_name="SF Mono")
 add_text(slide, M_LEFT, Emu(5400000), CONTENT_W, Emu(400000),
-         "Study order.ts first  •  Start with GetStatus  •  HINTS.md if stuck",
+         "Same pattern as apply()  •  HINTS-projection.md if stuck",
          font_size=16, color=COLOR_LIGHT_GRAY, alignment=PP_ALIGN.CENTER)
 
 add_notes(slide,
-    "TIMING: 1:35–2:10 (35 min work time)\n"
-    "LEAVE THIS SLIDE UP during exercise.\n\n"
-    "At 10 min: \"Who has GetStatus passing?\" Show Hint 1 if needed.\n"
-    "At 15 min: Show Hint 2 (the Charge case with ctx.sync pattern).\n"
-    "At 25 min: If many stuck on callbacks, live-code ChargeSucceeded.\n"
-    "At 30 min: \"5 minutes left. Focus on getting the unit tests green.\n"
-    "            The integration tests are a bonus — we'll demo them together.\"\n"
-    "At 33 min: \"Wrapping up in 2 minutes.\""
+    "TIMING: 1:35–1:55 (20 min)\n"
+    "This should go faster — they already know the pattern.\n"
+    "At 10 min: Most should have Issued done.\n"
+    "At 15 min: Show Hint 3 (Redeemed with transactionCount).\n"
+    "At 18 min: \"2 minutes left.\""
 )
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# SLIDE 21: Exercise 2 Debrief
+# SLIDE 22: Exercise 2 Debrief
 # ══════════════════════════════════════════════════════════════════════════
 
 slide = prs.slides.add_slide(BLANK_LAYOUT)
@@ -977,52 +892,95 @@ add_title(slide, "EXERCISE 2: DEBRIEF")
 add_accent_line(slide, Emu(1200000))
 
 add_text(slide, M_LEFT, Emu(1600000), CONTENT_W, Emu(400000),
-         "What just happened in the integration test:", font_size=20, bold=True, color=COLOR_DARK)
+         "Three pure functions — that's the whole model:", font_size=20, bold=True, color=COLOR_DARK)
 
-flow_steps = [
-    "1.  runtime.ask(order, PlaceOrder)  →  OrderPlaced persisted",
-    "2.  Order.andRun()  →  ctx.tell(Payment, Charge)",
-    "3.  Payment.decide(Charge)  →  ChargeRequested persisted  →  ctx.sync(gateway)",
-    "4.  Gateway returns  →  ChargeSucceeded command delivered to Payment",
-    "5.  Payment.decide(ChargeSucceeded)  →  ChargeCompleted persisted  →  ctx.tell(Order, ConfirmPayment)",
-    "6.  Order.decide(ConfirmPayment)  →  PaymentConfirmed persisted  →  status: Confirmed",
+add_code_box(slide,
+    "decide(state, command)  → Effect     // business logic\n"
+    "apply(state, event)     → State      // write-side fold\n"
+    "evolve(view, event)     → View       // read-side fold",
+    M_LEFT, Emu(2200000), Emu(8000000), Emu(1000000), font_size=18)
+
+add_text(slide, M_LEFT, Emu(3600000), CONTENT_W, Emu(400000),
+         "What the projection gave you that the aggregate doesn't:", font_size=18, bold=True, color=COLOR_DARK)
+
+diffs = [
+    "transactionCount — derived data, computed from event stream",
+    "encouragement — data from a different event (LLM callback)",
+    "Optimized for queries — flat shape, no business rules",
+    "Can be rebuilt anytime from the event journal",
 ]
-for i, step in enumerate(flow_steps):
-    y = Emu(2200000 + i * 530000)
-    color = COLOR_BLUE if i % 2 == 0 else COLOR_GREEN
-    add_text(slide, M_LEFT, y, CONTENT_W, Emu(400000),
-             step, font_size=15, color=color, font_name="SF Mono")
-
-add_text(slide, M_LEFT, Emu(5700000), CONTENT_W, Emu(400000),
-         "Two aggregates, one runtime, full async flow — zero infrastructure code in your domain.",
-         font_size=17, bold=True, color=COLOR_DARK)
+add_bullet_block(slide, diffs, Emu(4100000), color=COLOR_BLUE, font_size=17,
+                 spacing=Emu(500000))
 
 add_notes(slide,
-    "TIMING: 2:10–2:17\n"
-    "LIVE DEMO: Run the integration test on screen. Show it passing.\n"
-    "Walk through the 6-step flow on the slide.\n"
-    "\"All of this happened with fire-and-forget commands. No HTTP, no message broker, no choreography.\"\n"
-    "\"The runtime handles delivery. Your code just says ctx.tell().\"\n"
-    "THIS IS THE WOW MOMENT. Let it land."
+    "TIMING: 1:55–2:00\n"
+    "\"Three pure functions. That's the entire architecture.\"\n"
+    "\"decide for commands, apply for state, evolve for queries.\"\n"
+    "\"Now let me show you something exciting...\""
 )
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# SLIDE 22: The Full Picture — Backend Service
+# SLIDE 23: Demo — LLM Integration
 # ══════════════════════════════════════════════════════════════════════════
 
 slide = prs.slides.add_slide(BLANK_LAYOUT)
 set_bg(slide, BG_LIGHT)
-add_title(slide, "THE FULL PICTURE: BACKEND SERVICE")
+add_title(slide, "DEMO: LLM INTEGRATION", color=COLOR_PURPLE)
+add_accent_line(slide, Emu(1200000), color=COLOR_PURPLE)
+
+add_text(slide, M_LEFT, Emu(1600000), CONTENT_W, Emu(400000),
+         "When a gift card is issued, ask an LLM to write a personal encouragement:",
+         font_size=18, color=COLOR_GRAY)
+
+add_code_box(slide,
+    "case \"Issue\": {\n"
+    "  return andReply(\n"
+    "    andRun(\n"
+    "      persist({ tag: \"Issued\", ... }),\n"
+    "      async () => {\n"
+    "        await ctx.sync({                        // ← same pattern!\n"
+    "          effect: () => generateEncouragement(name, amount),\n"
+    "          onSuccess: (r) => ({ tag: \"SetEncouragement\", text: r.text }),\n"
+    "          onFailure: (_) => ({ tag: \"SetEncouragement\", text: fallback }),\n"
+    "        });\n"
+    "      },\n"
+    "    ),\n"
+    "    { tag: \"Ok\" },\n"
+    "  );\n"
+    "}",
+    M_LEFT, Emu(2200000), Emu(9000000), Emu(3200000), font_size=14)
+
+add_text(slide, M_LEFT, Emu(5700000), CONTENT_W, Emu(400000),
+         "ctx.sync() — same pattern for LLM, payment gateway, shipping API. Event sourcing gives you retry, replay, audit — for free.",
+         font_size=16, bold=True, color=COLOR_PURPLE)
+
+add_notes(slide,
+    "TIMING: 2:00–2:10\n"
+    "LIVE DEMO: Run `OPENROUTER_API_KEY=sk-... npm run demo:llm`\n"
+    "Issue a card with a name → show the encouragement appearing.\n"
+    "\"ctx.sync() is the same pattern you'd use for ANY external call.\"\n"
+    "\"The LLM result comes back as a command, gets persisted as an event.\"\n"
+    "\"Crash? Replay from journal. Debug? Replay specific steps.\"\n"
+    "THIS IS THE WOW MOMENT."
+)
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# SLIDE 24: The Full Picture
+# ══════════════════════════════════════════════════════════════════════════
+
+slide = prs.slides.add_slide(BLANK_LAYOUT)
+set_bg(slide, BG_LIGHT)
+add_title(slide, "THE FULL PICTURE")
 add_accent_line(slide, Emu(1200000))
 
 layers = [
-    ("Your code", "Aggregates (decide + apply), Projections, Sagas", COLOR_GREEN),
-    ("TEOB framework", "Effect system, Runtime, Codecs, TestKit, CLI scaffolding", COLOR_BLUE),
-    ("Persistence", "In-memory → SQLite → PostgreSQL (swap without code changes)", COLOR_ORANGE),
-    ("Infrastructure", "Health checks, OpenTelemetry, auto-generated REST/OpenAPI", COLOR_LIGHT_GRAY),
+    ("Your code", "Aggregates, Projections, Sagas — pure functions", COLOR_GREEN),
+    ("TEOB framework", "Effect system, Runtime, Codecs, TestKit, HTTP routes", COLOR_BLUE),
+    ("Persistence", "In-memory → SQLite → PostgreSQL (zero code changes)", COLOR_ORANGE),
+    ("Infrastructure", "Health checks, OpenTelemetry, OpenAPI generation", COLOR_LIGHT_GRAY),
 ]
-
 for i, (layer, desc, color) in enumerate(layers):
     y = Emu(1700000 + i * 1100000)
     add_box(slide, M_LEFT, y, Emu(2500000), Emu(800000), color,
@@ -1031,15 +989,14 @@ for i, (layer, desc, color) in enumerate(layers):
              desc, font_size=17, color=COLOR_DARK)
 
 add_notes(slide,
-    "TIMING: 2:17–2:20\n"
-    "\"You just built the green layer. Everything else is provided.\"\n"
-    "\"To go to production: swap InMemoryRuntime → PostgresRuntime, add ServiceTemplate, done.\"\n"
-    "Quick mention of projections and sagas — \"that's the next workshop.\""
+    "TIMING: 2:10–2:13\n"
+    "\"You built the green layer. Everything else is provided.\"\n"
+    "\"To go to production: swap InMemoryRuntime → PostgresRuntime.\""
 )
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# SLIDE 23: Battle Tested
+# SLIDE 25: Battle Tested
 # ══════════════════════════════════════════════════════════════════════════
 
 slide = prs.slides.add_slide(BLANK_LAYOUT)
@@ -1056,70 +1013,7 @@ points = [
 add_bullet_block(slide, points, Emu(1800000), color=COLOR_DARK, font_size=21,
                  spacing=Emu(900000), bold=True)
 
-add_notes(slide,
-    "TIMING: 2:20–2:22\n"
-    "Credibility slide. Keep it brief.\n"
-    "\"This isn't a toy framework. The Scala version has been running fintech systems for 10+ years.\"\n"
-    "\"The TypeScript port brings the same patterns to a broader ecosystem.\""
-)
-
-
-# ══════════════════════════════════════════════════════════════════════════
-# SLIDE 24: DSL- and AI-Friendly
-# ══════════════════════════════════════════════════════════════════════════
-
-slide = prs.slides.add_slide(BLANK_LAYOUT)
-set_bg(slide, BG_LIGHT)
-add_title(slide, "DSL- AND AI-FRIENDLY")
-add_accent_line(slide, Emu(1200000))
-
-items = [
-    "Native DSLs built on top (e.g. Petri Net flow modeling)",
-    "Pure, concise, testable logics — ideal for AI code generation",
-    "Zero boilerplate, no ORM",
-    "Small, manageable contexts digestible by LLMs",
-    "CLI scaffolding: teob new aggregate / projection / flow",
-]
-add_bullet_block(slide, items, Emu(1800000), color=COLOR_DARK, font_size=19,
-                 spacing=Emu(700000))
-
-add_notes(slide,
-    "TIMING: 2:22–2:24 (optional — include if time allows)\n"
-    "\"The pure functional style means AI assistants can generate aggregate code reliably.\"\n"
-    "\"The CLI scaffolds a working aggregate in seconds.\""
-)
-
-
-# ══════════════════════════════════════════════════════════════════════════
-# SLIDE 25: TEOB Agentic Platform (teaser)
-# ══════════════════════════════════════════════════════════════════════════
-
-slide = prs.slides.add_slide(BLANK_LAYOUT)
-set_bg(slide, BG_LIGHT)
-add_title(slide, "TEOB AGENTIC PLATFORM")
-add_accent_line(slide, Emu(1200000))
-
-add_text(slide, M_LEFT, Emu(1700000), CONTENT_W, Emu(500000),
-         "What happens when your aggregate IS an AI agent?",
-         font_size=22, color=COLOR_GRAY)
-
-agent_items = [
-    "LLM integration — OpenAI, OpenRouter, any provider",
-    "MCP tool registry with permission model",
-    "RAG knowledge search (pgvector)",
-    "Cross-session agent memory (event-sourced, naturally)",
-    "Crash-resilient: agent state survives restarts — it's just events",
-]
-add_bullet_block(slide, agent_items, Emu(2500000), color=COLOR_DARK, font_size=18,
-                 spacing=Emu(650000))
-
-add_notes(slide,
-    "TIMING: 2:24–2:26 (optional teaser)\n"
-    "\"Event sourcing gives you time-travel, audit, replay for free.\n"
-    " Now imagine your AI agent's entire conversation history, tool calls,\n"
-    " and decisions are events. Crash? Replay from journal. Debug? Replay specific steps.\"\n"
-    "Tease — don't go deep. This is a future workshop topic."
-)
+add_notes(slide, "TIMING: 2:13–2:15\nCredibility slide. Keep brief.")
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -1131,15 +1025,14 @@ set_bg(slide, BG_DARK)
 add_text(slide, M_LEFT, Emu(1000000), CONTENT_W, Emu(800000),
          "WHAT'S NEXT?", font_size=44, bold=True,
          color=COLOR_WHITE, alignment=PP_ALIGN.CENTER)
-
 add_accent_line(slide, Emu(1800000), color=COLOR_BLUE)
 
 cta_items = [
-    ("Clone the repo", "github.com/timur/teob-ts  (npm install && npm test)", COLOR_GREEN),
-    ("Try Exercise 3 at home", "Projections — build a read model from gift card events", COLOR_BLUE),
-    ("Scaffold your own aggregate", "npx teob new aggregate  — working code in seconds", COLOR_BLUE),
-    ("Watch the recording", "Link will be shared — includes solution walkthroughs", COLOR_ORANGE),
-    ("Join the community", "Questions, feedback, next workshop announcements", COLOR_LIGHT_GRAY),
+    ("Clone the repo", "github.com/lambda-house/teob-ts-workshop-gift-card", COLOR_GREEN),
+    ("Try at home", "Add Freeze/Unfreeze commands, transaction history in the view", COLOR_BLUE),
+    ("Scaffold your own", "npx teob new aggregate — working code in seconds", COLOR_BLUE),
+    ("Watch the recording", "Solution walkthroughs with chapter markers", COLOR_ORANGE),
+    ("Next workshop", "Episode 2: Sagas & Cross-Aggregate Communication", COLOR_PURPLE),
 ]
 for i, (title, desc, color) in enumerate(cta_items):
     y = Emu(2100000 + i * 800000)
@@ -1154,13 +1047,10 @@ add_text(slide, M_LEFT, Emu(6200000), CONTENT_W, Emu(400000),
          font_size=24, bold=True, color=COLOR_WHITE, alignment=PP_ALIGN.CENTER)
 
 add_notes(slide,
-    "TIMING: 2:26–2:30\n"
-    "\"You just built two event-sourced aggregates with cross-boundary communication.\n"
-    " That's not a demo — that's the real pattern.\"\n\n"
-    "Go through each CTA. If you have a QR code to the repo, show it now.\n"
-    "\"Exercise 3 will be in the repo by next week\" — gives them a reason to come back.\n"
-    "Open for questions.\n\n"
-    "RECORDING NOTE: This is a good cut point for the video."
+    "TIMING: 2:15–2:20\n"
+    "\"You built an event-sourced service with a read model and AI integration.\"\n"
+    "\"Three pure functions. That's the whole architecture.\"\n"
+    "Open for questions."
 )
 
 
@@ -1168,6 +1058,8 @@ add_notes(slide,
 # Save
 # ══════════════════════════════════════════════════════════════════════════
 
-output_path = "/Users/timur/work/teob-ts/workshop/DDD-Workshop-Slides.pptx"
+import os
+output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                           "DDD-Workshop-Slides.pptx")
 prs.save(output_path)
 print(f"Saved {len(prs.slides)} slides to {output_path}")
