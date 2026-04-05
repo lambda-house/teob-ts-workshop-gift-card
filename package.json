@@ -1,0 +1,25 @@
+{
+  "name": "@lambda-house/teob-ts-workshop-gift-card",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:aggregate": "vitest run test/aggregate.test.ts",
+    "test:projection": "vitest run test/projection.test.ts",
+    "start": "tsx src/service/server.ts",
+    "demo:llm": "tsx src/service/llm-demo.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.0",
+    "@lambda-house/teob-ts": "^0.1.0",
+    "hono": "^4.7.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}
