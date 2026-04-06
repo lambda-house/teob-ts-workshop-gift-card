@@ -20,7 +20,7 @@ npm install
 Verify:
 ```bash
 npm run test:aggregate
-# Should see 13 failing tests and 2 passing — that's your starting point!
+# Should see 14 failing tests and 2 passing — that's your starting point!
 ```
 
 ## Workshop Flow
@@ -32,7 +32,8 @@ Implement the decision function and invariants.
 **File:** `src/domain/aggregate.ts` — fill in the `decide` cases and `invariants`
 
 ```bash
-npm run test:aggregate    # 15 tests — make them green
+npm run test:aggregate          # 16 tests — make them green
+npm run test:aggregate:watch    # same, re-runs on save
 ```
 
 Suggested order: `Issue` → `GetBalance` → `Redeem` → `Cancel` → Invariants
@@ -40,6 +41,8 @@ Suggested order: `Issue` → `GetBalance` → `Redeem` → `Cancel` → Invarian
 Stuck? See `HINTS-aggregate.md` (4 progressive levels) or `src/domain/aggregate.solution.ts`
 
 ### Demo: HTTP Service
+
+> **Note:** `npm start` runs your exercise code — finish Exercise 1 first.
 
 Watch your aggregate become an API:
 
@@ -64,10 +67,26 @@ Build the read model — same pure function pattern, now for queries.
 **File:** `src/domain/projection.ts` — fill in the `evolve` cases
 
 ```bash
-npm run test:projection   # 8 tests — make them green
+npm run test:projection          # 8 tests — make them green
+npm run test:projection:watch    # same, re-runs on save
 ```
 
 Stuck? See `HINTS-projection.md` (4 levels) or `src/domain/projection.solution.ts`
+
+### Exercise 3: AI-Generate a Frontend (10 min)
+
+Your service now has both write and read APIs. Use your AI coding agent to
+generate a frontend with a single prompt.
+
+Open `PROMPT-frontend.md`, copy the prompt into your agent (Claude Code, Cursor, etc.),
+and let it generate `public/index.html`. Then:
+
+```bash
+npm start
+open http://localhost:3000
+```
+
+Reference solution: `public-solution/index.html`
 
 ### Demo: LLM Integration
 
@@ -116,6 +135,10 @@ src/
 │   ├── projection.ts            # Exercise 2: implement evolve
 │   └── projection.solution.ts   # Reference solution
 └── service/
-    ├── server.ts                # Pre-built HTTP service
+    ├── server.ts                # HTTP service (write + read + static)
     └── llm-demo.ts              # LLM integration demo
+public/                          # Exercise 3: AI-generated frontend goes here
+public-solution/                 # Reference frontend solution
+PROMPT-frontend.md               # Prompt for AI coding agent
+ARCHITECTURE.md                  # Service architecture diagram
 ```

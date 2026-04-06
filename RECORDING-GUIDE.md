@@ -25,6 +25,8 @@
 ### Dry Run
 - [ ] Record 2 minutes, play back — check audio level, screen readability, camera framing
 - [ ] Run both test suites to verify they work on recording machine
+- [ ] Verify `npm start` works with solutions in place
+- [ ] Verify `public-solution/index.html` loads correctly in browser
 
 ---
 
@@ -48,11 +50,14 @@ Record a tighter version without exercise wait time. Chapters:
 | 1. Intro | Why DDD + ES, what you'll build | 3 min |
 | 2. Architecture | Traditional → Event Sourcing | 5 min |
 | 3. Effects & TEOB | Effects, DDD mapping, the core loop | 8 min |
-| 4. Exercise 1 Walkthrough | Gift Card: problem → solution, step by step | 10 min |
-| 5. Aggregate Communication | ctx.tell, ctx.sync, callback pattern | 5 min |
-| 6. Exercise 2 Walkthrough | Order+Payment: problem → solution → integration demo | 12 min |
-| 7. Full Picture & Next Steps | Service layer, production path, CTA | 4 min |
-| **Total** | | **~47 min** |
+| 4. Exercise 1 Walkthrough | Gift Card aggregate: problem → solution, step by step | 12 min |
+| 5. HTTP Demo | npm start → curl commands → live API | 3 min |
+| 6. Write vs Read Side | Projections theory | 3 min |
+| 7. Exercise 2 Walkthrough | Gift Card projection: problem → solution | 8 min |
+| 8. Frontend Generation | AI prompt → working UI | 4 min |
+| 9. LLM Demo | ctx.sync() → OpenRouter → encouragement | 4 min |
+| 10. Full Picture & Next Steps | Architecture, production path, CTA | 3 min |
+| **Total** | | **~53 min** |
 
 Each chapter is a standalone video that can be published separately.
 
@@ -73,14 +78,17 @@ Each chapter is a standalone video that can be published separately.
 8:00 The TEOB Effect System
 13:00 DDD ↔ TEOB: The 1:1 Mapping
 18:00 Exercise 1: Gift Card Aggregate (walkthrough)
-28:00 How Aggregates Communicate
-33:00 Exercise 2: Order + Payment (walkthrough)
-45:00 The Full Picture & Next Steps
+30:00 Demo: Your Aggregate as an HTTP API
+33:00 Write Side vs Read Side
+36:00 Exercise 2: Gift Card Projection (walkthrough)
+44:00 Exercise 3: AI-Generated Frontend
+48:00 Demo: LLM Integration with ctx.sync()
+52:00 The Full Picture & Next Steps
 ```
 
 ### Thumbnail
 - Dark background, code snippet visible
-- Title: "DDD Workshop: Event-Sourced Aggregates in TypeScript"
+- Title: "DDD Workshop: Full-Stack Event Sourcing in TypeScript"
 - Subtitle: "Hands-on with TEOB"
 - Your face if comfortable (thumbnails with faces get higher CTR)
 
@@ -108,33 +116,20 @@ Each chapter gets:
 
 ## Building the Archive
 
-This workshop is **Episode 1: Aggregates & Communication**.
+This workshop covers: **Aggregates, Projections, and Full-Stack Service.**
 
 Future episodes to record:
 
 | Episode | Topic | Prerequisites |
 |---------|-------|---------------|
-| 1 | Aggregates & Communication | None (this workshop) |
-| 2 | Projections & Read Models | Episode 1 |
-| 3 | Sagas & Compensation | Episodes 1-2 |
-| 4 | Petri Net Flow Modeling | Episode 1 |
-| 5 | AI Agents with TEOB | Episodes 1-2 |
+| 1 | Aggregates, Projections & Full-Stack | None (this workshop) |
+| 2 | Aggregate Communication & Sagas | Episode 1 |
+| 3 | Petri Net Flow Modeling | Episode 1 |
+| 4 | AI Agents with TEOB | Episode 1 |
+| 5 | Production: PostgreSQL & ServiceTemplate | Episodes 1-2 |
 
 Each episode follows the same format:
 - Slides (generated from `build-slides.py` pattern)
-- 2 exercises with progressive hints
-- Recorded walkthrough (~45 min studio version)
+- 2-3 exercises with progressive hints
+- Recorded walkthrough (~50 min studio version)
 - README with setup, timeline, and post-workshop challenges
-
-The `workshop/` directory grows:
-```
-workshop/
-├── episode1-aggregates/         ← this workshop
-│   ├── exercise1-gift-card/
-│   ├── exercise2-order-payment/
-│   ├── DDD-Workshop-Slides.pptx
-│   └── README.md
-├── episode2-projections/        ← future
-├── episode3-sagas/              ← future
-└── README.md                    ← series index
-```

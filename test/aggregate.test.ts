@@ -85,6 +85,13 @@ describe("Redeem", () => {
     expect(result.reply).toEqual({ tag: "Rejected", reason: "Insufficient balance" });
   });
 
+  it("should reject redeem on an empty card", async () => {
+    const { result } = await kit.run(kit.initialState, { tag: "Redeem", amount: 10 });
+
+    expect(result.events).toEqual([]);
+    expect(result.reply).toEqual({ tag: "Rejected", reason: "Card is not active" });
+  });
+
   it("should reject redeem on a cancelled card", async () => {
     const cancelled = { ...kit.initialState, balance: 0, status: "Cancelled" as const };
 

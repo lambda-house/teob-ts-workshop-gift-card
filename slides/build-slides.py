@@ -620,11 +620,11 @@ add_code_box(slide,
     M_LEFT, Emu(5400000), Emu(5500000), Emu(500000), font_size=16)
 
 add_text(slide, Emu(6500000), Emu(5450000), Emu(5000000), Emu(500000),
-         "15 tests. Make them green.", font_size=22, bold=True, color=COLOR_GREEN)
+         "16 tests. Make them green.", font_size=22, bold=True, color=COLOR_GREEN)
 
 add_notes(slide,
     "TIMING: 0:40–0:42\n"
-    "LIVE DEMO: Run tests. Show 13 failing.\n"
+    "LIVE DEMO: Run tests. Show 14 failing, 2 passing.\n"
     "\"Start with Issue — it's the simplest. The hints are in HINTS-aggregate.md.\"\n"
     "\"Solution is in aggregate.solution.ts — but try first!\""
 )
@@ -640,7 +640,7 @@ add_text(slide, M_LEFT, Emu(2200000), CONTENT_W, Emu(1000000),
          "EXERCISE 1: AGGREGATE", font_size=48, bold=True,
          color=COLOR_GREEN, alignment=PP_ALIGN.CENTER)
 add_text(slide, M_LEFT, Emu(3400000), CONTENT_W, Emu(600000),
-         "30 minutes  •  15 tests  •  implement decide() + invariants",
+         "30 minutes  •  16 tests  •  implement decide() + invariants",
          font_size=22, color=COLOR_LIGHT_GRAY, alignment=PP_ALIGN.CENTER)
 add_text(slide, M_LEFT, Emu(4600000), CONTENT_W, Emu(400000),
          "npm run test:aggregate",

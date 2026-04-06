@@ -1,6 +1,6 @@
 # Workshop Slide Deck — Complete Structure
 
-**File:** `slides/DDD-Workshop-Slides.pptx` (26 slides, ~2h20 workshop)
+**File:** `slides/DDD-Workshop-Slides.pptx` (28 slides, ~2h30 workshop)
 **Build:** `/tmp/pptx-env/bin/python3 slides/build-slides.py`
 
 ## Slide Order + Timeline
@@ -29,10 +29,12 @@
 | 20 | EXERCISE 2: GIFT CARD PROJECTION | 1:32–1:35 | Exercise brief |
 | 21 | EXERCISE 2: PROJECTION (work screen) | 1:35–1:55 | **Hands-on (20 min)** |
 | 22 | EXERCISE 2: DEBRIEF | 1:55–2:00 | Debrief |
-| 23 | DEMO: LLM INTEGRATION | 2:00–2:10 | **Live demo** |
-| 24 | THE FULL PICTURE | 2:10–2:13 | Wrap-up |
-| 25 | BATTLE TESTED | 2:13–2:15 | Credibility |
-| 26 | WHAT'S NEXT? (CTA) | 2:15–2:20 | Closing |
+| 23 | EXERCISE 3: AI-GENERATE A FRONTEND | 2:00–2:02 | Exercise brief |
+| 24 | EXERCISE 3: FRONTEND (work screen) | 2:02–2:12 | **Hands-on (10 min)** |
+| 25 | DEMO: LLM INTEGRATION | 2:12–2:22 | **Live demo** |
+| 26 | THE FULL PICTURE | 2:22–2:25 | Wrap-up |
+| 27 | BATTLE TESTED | 2:25–2:27 | Credibility |
+| 28 | WHAT'S NEXT? (CTA) | 2:27–2:30 | Closing |
 
 ## Timing Budget
 
@@ -46,16 +48,18 @@
 | Break | 5 min | 1:27 |
 | Theory: write vs read side | 5 min | 1:32 |
 | Exercise 2 (projection) | 20+5 min | 2:00 |
-| Demo: LLM integration | 10 min | 2:10 |
-| Wrap-up + CTA | 10 min | 2:20 |
+| Exercise 3 (AI frontend) | 2+10 min | 2:12 |
+| Demo: LLM integration | 10 min | 2:22 |
+| Wrap-up + CTA | 8 min | 2:30 |
 
 ## The Four Layers
 
-One domain (gift cards), four capabilities:
+One domain (gift cards), five capabilities:
 
 1. **Exercise: Aggregate** — decide() + invariants (pure functions)
 2. **Demo: HTTP Service** — `npm start` → curl commands → live API
 3. **Exercise: Projection** — evolve() read model (pure functions)
-4. **Demo: LLM** — ctx.sync() → OpenRouter → encouragement text
+4. **Exercise: AI Frontend** — one prompt → working UI on your API
+5. **Demo: LLM** — ctx.sync() → OpenRouter → encouragement text
 
-The narrative arc: "Three pure functions — decide, apply, evolve — that's the whole model."
+The narrative arc: "Three pure functions — decide, apply, evolve — that's the whole model. Then AI writes your frontend."

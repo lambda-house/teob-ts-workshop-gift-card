@@ -19,7 +19,7 @@ import { CategoryId, type EntityId } from "@lambda-house/teob-ts/core";
 import type { Aggregate, Invariant } from "@lambda-house/teob-ts/core";
 import type { Effect } from "@lambda-house/teob-ts/core";
 import type { EffectControl } from "@lambda-house/teob-ts/core";
-import { persist, reply, done, andReply } from "@lambda-house/teob-ts/core";
+import { persist, reply, andReply } from "@lambda-house/teob-ts/core";
 
 import type {
   GiftCardState,
@@ -56,6 +56,8 @@ export const giftCardAggregate: Aggregate<
   // ║    andReply(persist(event), replyValue)  — persist + reply          ║
   // ║    reply(replyValue)                     — reply without events     ║
   // ║    persist(event)                        — persist only (no reply)  ║
+  // ║                                                                     ║
+  // ║  (Ignore _ctx for now — you'll see it in the LLM demo later.)       ║
   // ╚══════════════════════════════════════════════════════════════════════╝
 
   async decide(

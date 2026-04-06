@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gift Card Service</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0b;
+    --surface: #111113;
+    --surface-raised: #18181b;
+    --border: #27272a;
+    --border-subtle: #1e1e21;
+    --text: #fafafa;
+    --text-muted: #71717a;
+    --text-dim: #52525b;
+    --accent: #22c55e;
+    --accent-dim: #16a34a;
+    --status-active: #22c55e;
+    --status-empty: #71717a;
+    --status-cancelled: #ef4444;
+    --amber: #f59e0b;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Layout ─────────────────────────────────── */
+
+  .shell {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  header {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  header h1 {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  header .tag {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    background: var(--surface);
+    padding: 0.2em 0.6em;
+    border-radius: 3px;
+    border: 1px solid var(--border-subtle);
+  }
+
+  .columns {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 2rem;
+    align-items: start;
+  }
+
+  @media (max-width: 800px) {
+    .columns { grid-template-columns: 1fr; }
+  }
+
+  /* ── Panel (left sidebar) ───────────────────── */
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    position: sticky;
+    top: 1.5rem;
+  }
+
+  .panel-header {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .panel-header h2 {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+  }
+
+  .panel-header .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .panel-body {
+    padding: 1rem;
+  }
+
+  /* ── Tabs ────────────────────────────────────── */
+
+  .tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .tab {
+    flex: 1;
+    padding: 0.6rem 0.5rem;
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-dim);
+    background: none;
+    border: none;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+    text-align: center;
+  }
+
+  .tab:hover { color: var(--text-muted); }
+  .tab.active {
+    color: var(--text);
+    border-bottom-color: var(--accent);
+  }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ── Form ────────────────────────────────────── */
+
+  label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    font-weight: 500;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.35rem;
+  }
+
+  input, select {
+    width: 100%;
+    padding: 0.5rem 0.65rem;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.15s;
+    margin-bottom: 0.85rem;
+  }
+
+  input:focus, select:focus {
+    border-color: var(--accent-dim);
+  }
+
+  input::placeholder {
+    color: var(--text-dim);
+  }
+
+  select { cursor: pointer; }
+  select option { background: var(--surface); }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  button.action {
+    width: 100%;
+    padding: 0.55rem 1rem;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: var(--surface-raised);
+    color: var(--text);
+  }
+
+  button.action:hover {
+    background: var(--accent-dim);
+    border-color: var(--accent-dim);
+    color: #fff;
+  }
+
+  button.action:active {
+    transform: scale(0.98);
+  }
+
+  button.action.danger {
+    color: var(--status-cancelled);
+    border-color: #3b1618;
+  }
+
+  button.action.danger:hover {
+    background: #7f1d1d;
+    border-color: #7f1d1d;
+    color: #fff;
+  }
+
+  .action-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+
+  /* ── Log ──────────────────────────────────────── */
+
+  .log {
+    margin-top: 0.85rem;
+    max-height: 100px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .log-entry {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    padding: 0.2rem 0;
+    border-bottom: 1px solid var(--border-subtle);
+    animation: fadeIn 0.2s ease;
+  }
+
+  .log-entry .ok { color: var(--accent); }
+  .log-entry .err { color: var(--status-cancelled); }
+  .log-entry .ts { color: var(--text-dim); margin-right: 0.5em; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+  /* ── Card Grid ───────────────────────────────── */
+
+  .grid-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+
+  .grid-header h2 {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+  }
+
+  .grid-header .count {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--text-dim);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+  }
+
+  .card[data-status="Active"]::before { background: var(--status-active); }
+  .card[data-status="Empty"]::before { background: var(--status-empty); }
+  .card[data-status="Cancelled"]::before { background: var(--status-cancelled); }
+
+  .card:hover {
+    border-color: var(--text-dim);
+  }
+
+  .card.selected {
+    border-color: var(--accent-dim);
+    box-shadow: 0 0 0 1px var(--accent-dim);
+  }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.65rem;
+  }
+
+  .card-id {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .status-pill {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.15em 0.55em;
+    border-radius: 3px;
+  }
+
+  .status-pill[data-status="Active"] {
+    color: var(--status-active);
+    background: #052e16;
+    border: 1px solid #14532d;
+  }
+
+  .status-pill[data-status="Empty"] {
+    color: var(--status-empty);
+    background: #1a1a1e;
+    border: 1px solid var(--border);
+  }
+
+  .status-pill[data-status="Cancelled"] {
+    color: var(--status-cancelled);
+    background: #2a0a0a;
+    border: 1px solid #3b1618;
+  }
+
+  .card-balance {
+    font-family: var(--mono);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+  }
+
+  .card-balance .currency {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    font-weight: 500;
+  }
+
+  .card-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--text-dim);
+  }
+
+  .card-recipient {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 60%;
+  }
+
+  .card-encouragement {
+    margin-top: 0.6rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border-subtle);
+    font-family: var(--sans);
+    font-size: 0.72rem;
+    font-style: italic;
+    color: var(--amber);
+    line-height: 1.4;
+    opacity: 0.85;
+  }
+
+  .empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 0.75rem;
+  }
+
+  .empty-state .arrow {
+    display: inline-block;
+    margin-top: 0.5rem;
+    font-size: 1.2rem;
+    animation: point 1.5s ease-in-out infinite;
+  }
+
+  @media (max-width: 800px) {
+    .empty-state .arrow { transform: rotate(90deg); }
+  }
+
+  @keyframes point {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(-6px); }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <h1>gift-card-service</h1>
+    <span class="tag">teob workshop</span>
+    <span class="tag">localhost:3000</span>
+  </header>
+
+  <div class="columns">
+    <!-- Left panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="dot"></div>
+        <h2>Commands</h2>
+      </div>
+
+      <div class="tabs">
+        <button class="tab active" data-tab="issue">Issue</button>
+        <button class="tab" data-tab="operate">Operate</button>
+      </div>
+
+      <!-- Issue tab -->
+      <div class="tab-content active" data-tab="issue">
+        <div class="panel-body">
+          <label for="issue-id">Card ID</label>
+          <input type="text" id="issue-id" placeholder="card-1" spellcheck="false">
+
+          <div class="field-row">
+            <div>
+              <label for="issue-amount">Amount</label>
+              <input type="number" id="issue-amount" placeholder="100" min="1">
+            </div>
+            <div>
+              <label for="issue-name">Recipient</label>
+              <input type="text" id="issue-name" placeholder="Alice" spellcheck="false">
+            </div>
+          </div>
+
+          <button class="action" id="btn-issue">Issue Card</button>
+        </div>
+      </div>
+
+      <!-- Operate tab -->
+      <div class="tab-content" data-tab="operate">
+        <div class="panel-body">
+          <label for="op-card">Card</label>
+          <select id="op-card">
+            <option value="">select a card...</option>
+          </select>
+
+          <label for="redeem-amount">Redeem Amount</label>
+          <input type="number" id="redeem-amount" placeholder="30" min="1">
+
+          <div class="action-row">
+            <button class="action" id="btn-redeem">Redeem</button>
+            <button class="action danger" id="btn-cancel">Cancel Card</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-body log" id="log"></div>
+    </div>
+
+    <!-- Right grid -->
+    <div>
+      <div class="grid-header">
+        <h2>Gift Cards</h2>
+        <span class="count" id="card-count">0 cards</span>
+      </div>
+      <div class="grid" id="grid">
+        <div class="empty-state">
+          Issue your first card <span class="arrow">&larr;</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '';
+let selectedCard = null;
+
+// ── Tabs ────────────────────────────────────────
+
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelector(`.tab-content[data-tab="${tab.dataset.tab}"]`).classList.add('active');
+  });
+});
+
+// ── API helpers ─────────────────────────────────
+
+async function sendCommand(entityId, body) {
+  const res = await fetch(`${API}/api/gift-card/${entityId}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => null);
+  return { ok: res.ok, status: res.status, data };
+}
+
+async function fetchCards() {
+  const res = await fetch(`${API}/api/gift-cards`);
+  return res.ok ? res.json() : [];
+}
+
+// ── Log ─────────────────────────────────────────
+
+function log(msg, type = 'ok') {
+  const el = document.getElementById('log');
+  const ts = new Date().toLocaleTimeString('en', { hour12: false });
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.innerHTML = `<span class="ts">${ts}</span> <span class="${type}">${msg}</span>`;
+  el.prepend(entry);
+  while (el.children.length > 50) el.lastChild.remove();
+}
+
+// ── Render ──────────────────────────────────────
+
+function renderCards(cards) {
+  const grid = document.getElementById('grid');
+  const select = document.getElementById('op-card');
+  const count = document.getElementById('card-count');
+
+  count.textContent = `${cards.length} card${cards.length !== 1 ? 's' : ''}`;
+
+  // Update select
+  const prev = select.value;
+  select.innerHTML = '<option value="">select a card...</option>';
+  cards.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = `${c.id} — $${c.balance} (${c.status})`;
+    select.appendChild(opt);
+  });
+  select.value = prev;
+
+  if (cards.length === 0) {
+    grid.innerHTML = '<div class="empty-state">Issue your first card <span class="arrow">&larr;</span></div>';
+    return;
+  }
+
+  grid.innerHTML = '';
+  cards.forEach(c => {
+    const card = document.createElement('div');
+    card.className = `card${selectedCard === c.id ? ' selected' : ''}`;
+    card.dataset.status = c.status;
+    card.addEventListener('click', () => {
+      selectedCard = c.id;
+      select.value = c.id;
+      document.querySelector('.tab[data-tab="operate"]').click();
+      refresh();
+    });
+
+    card.innerHTML = `
+      <div class="card-top">
+        <span class="card-id">${c.id}</span>
+        <span class="status-pill" data-status="${c.status}">${c.status}</span>
+      </div>
+      <div class="card-balance"><span class="currency">$</span>${c.balance.toLocaleString()}</div>
+      <div class="card-meta">
+        <span class="card-recipient">${c.recipientName || '—'}</span>
+        <span>${c.transactionCount} txn${c.transactionCount !== 1 ? 's' : ''}</span>
+      </div>
+      ${c.encouragement ? `<div class="card-encouragement">"${c.encouragement}"</div>` : ''}
+    `;
+    grid.appendChild(card);
+  });
+}
+
+async function refresh() {
+  const cards = await fetchCards();
+  renderCards(cards);
+}
+
+// ── Actions ─────────────────────────────────────
+
+document.getElementById('btn-issue').addEventListener('click', async () => {
+  const id = document.getElementById('issue-id').value.trim();
+  const amount = parseInt(document.getElementById('issue-amount').value);
+  const name = document.getElementById('issue-name').value.trim();
+  if (!id || !amount || !name) return log('fill all fields', 'err');
+
+  const { ok, data } = await sendCommand(id, { tag: 'Issue', amount, recipientName: name });
+  if (ok) {
+    log(`issued ${id} — $${amount} → ${name}`);
+    document.getElementById('issue-id').value = '';
+    document.getElementById('issue-amount').value = '';
+    document.getElementById('issue-name').value = '';
+  } else {
+    log(data?.reason || data?.error || 'failed', 'err');
+  }
+  refresh();
+});
+
+document.getElementById('btn-redeem').addEventListener('click', async () => {
+  const id = document.getElementById('op-card').value;
+  const amount = parseInt(document.getElementById('redeem-amount').value);
+  if (!id) return log('select a card', 'err');
+  if (!amount) return log('enter amount', 'err');
+
+  const { ok, data } = await sendCommand(id, { tag: 'Redeem', amount });
+  if (ok) {
+    log(`redeemed $${amount} from ${id}`);
+    document.getElementById('redeem-amount').value = '';
+  } else {
+    log(data?.reason || data?.error || 'failed', 'err');
+  }
+  refresh();
+});
+
+document.getElementById('btn-cancel').addEventListener('click', async () => {
+  const id = document.getElementById('op-card').value;
+  if (!id) return log('select a card', 'err');
+
+  const { ok, data } = await sendCommand(id, { tag: 'Cancel' });
+  if (ok) {
+    log(`cancelled ${id}`);
+  } else {
+    log(data?.reason || data?.error || 'failed', 'err');
+  }
+  refresh();
+});
+
+// Also select card from dropdown
+document.getElementById('op-card').addEventListener('change', (e) => {
+  selectedCard = e.target.value || null;
+  refresh();
+});
+
+// Enter key on issue form
+document.querySelectorAll('#issue-id, #issue-amount, #issue-name').forEach(el => {
+  el.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('btn-issue').click();
+  });
+});
+
+document.getElementById('redeem-amount').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('btn-redeem').click();
+});
+
+// ── Init ────────────────────────────────────────
+
+refresh();
+setInterval(refresh, 3000);
+</script>
+</body>
+</html>

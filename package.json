@@ -8,7 +8,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:aggregate": "vitest run test/aggregate.test.ts",
+    "test:aggregate:watch": "vitest test/aggregate.test.ts",
     "test:projection": "vitest run test/projection.test.ts",
+    "test:projection:watch": "vitest test/projection.test.ts",
     "start": "tsx src/service/server.ts",
     "demo:llm": "tsx src/service/llm-demo.ts"
   },
