@@ -3,3 +3,4 @@ dist/
 .env
 *.tsbuildinfo
 MARKETING.md
+RECORDING-GUIDE.md
