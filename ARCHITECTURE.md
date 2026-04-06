@@ -12,10 +12,12 @@ graph TB
         UI["public/index.html<br/>Single-page UI"]
     end
 
-    subgraph HTTP["HTTP Layer — Hono"]
-        W["POST /api/gift-card/:entityId<br/>command in, reply out"]
-        R1["GET /api/gift-card/:entityId/view<br/>single card projection"]
-        R2["GET /api/gift-cards<br/>all projected views"]
+    subgraph HTTP["HTTP Layer — Hono (REST → TEOB commands)"]
+        W1["POST /api/gift-cards → Issue"]
+        W2["POST /api/gift-cards/:id/redeem → Redeem"]
+        W3["POST /api/gift-cards/:id/cancel → Cancel"]
+        R1["GET /api/gift-cards/:id"]
+        R2["GET /api/gift-cards"]
         H["GET /health"]
         S["GET /* — static files"]
     end
@@ -33,9 +35,13 @@ graph TB
         end
     end
 
-    UI -- "POST commands" --> W
-    UI -- "GET views (poll)" --> R2
-    W --> D
+    UI -- "POST" --> W1
+    UI -- "POST" --> W2
+    UI -- "POST" --> W3
+    UI -- "GET (poll)" --> R2
+    W1 --> D
+    W2 --> D
+    W3 --> D
     D -- "persist(event)" --> J
     J -- "replay" --> A
     A --> I
@@ -142,45 +148,21 @@ sequenceDiagram
     Note over Aggregate: Same pattern for: payment gateway,<br/>shipping API, email, etc.<br/>ctx.sync() handles retry, replay, audit trail.
 ```
 
-## API Reference
+## API Reference (see `openapi.yaml`)
 
-### Write Side — Commands
+The HTTP surface is a clean REST API. Internally, each endpoint maps to a TEOB command.
 
-```
-POST /api/gift-card/:entityId
-Content-Type: application/json
-```
+| Endpoint                             | Method | TEOB Command    | Request Body                          | Response            |
+|--------------------------------------|--------|-----------------|---------------------------------------|---------------------|
+| `/api/gift-cards`                    | POST   | Issue           | `{"id","amount","recipientName"}`     | 201 GiftCardView    |
+| `/api/gift-cards`                    | GET    | —               | —                                     | 200 GiftCardView[]  |
+| `/api/gift-cards/:cardId`            | GET    | — (projection)  | —                                     | 200 GiftCardView    |
+| `/api/gift-cards/:cardId/redeem`     | POST   | Redeem          | `{"amount"}`                          | 200 GiftCardView    |
+| `/api/gift-cards/:cardId/cancel`     | POST   | Cancel          | —                                     | 200 GiftCardView    |
+| `/health`                            | GET    | —               | —                                     | 200 `{"status":"ok"}` |
 
-| Command          | Request Body                                            | Success (200)                  | Rejection (400)                   |
-|------------------|---------------------------------------------------------|--------------------------------|-----------------------------------|
-| Issue            | `{"tag":"Issue","amount":100,"recipientName":"Alice"}`  | `{"tag":"Ok"}`                 | `Card already issued`             |
-| GetBalance       | `{"tag":"GetBalance"}`                                  | `{"tag":"Balance","amount":N}` | —                                 |
-| Redeem           | `{"tag":"Redeem","amount":30}`                          | `{"tag":"Ok"}`                 | `Not active` / `Insufficient balance` |
-| Cancel           | `{"tag":"Cancel"}`                                      | `{"tag":"Ok"}`                 | `Not active`                      |
-| SetEncouragement | `{"tag":"SetEncouragement","text":"..."}`                | `200` (no reply body)          | —                                 |
-
-All responses include an `ETag` header for optimistic concurrency.
-Send `If-Match: <etag>` on subsequent commands to detect conflicts (409).
-
-### Read Side — Projections
-
-```
-GET /api/gift-card/:entityId/view
-```
-
-Returns the projected view for one card:
-```json
-{ "balance": 70, "status": "Active", "recipientName": "Alice", "transactionCount": 1 }
-```
-
-```
-GET /api/gift-cards
-```
-
-Returns all projected views:
-```json
-[{ "id": "card-1", "balance": 70, "status": "Active", "recipientName": "Alice", "transactionCount": 1 }]
-```
+Commands are an **internal** concept — the REST surface doesn't expose them.
+All write endpoints return the updated view, so the client never needs a separate read after a mutation.
 
 ## Service Wiring
 
@@ -189,27 +171,23 @@ Returns all projected views:
 const { runtime, journal } = createInMemoryRuntime([
   registration(giftCardAggregate, giftCardEventCodec, giftCardStateCodec),
 ]);
-
-// Projection store
 const projectionStore = createInMemoryProjectionStore();
 
-// HTTP
-const app = new Hono();
-app.route("/api/gift-card", aggregateRoutes(runtime, giftCardCategory));
-
-app.get("/api/gift-card/:entityId/view", (c) => {
-  runProjection(giftCardProjection, journal, projectionStore, { eventCodec: giftCardEventCodec });
-  const envelope = projectionStore.get("gift-card-view", c.req.param("entityId"));
-  return envelope ? c.json(envelope.view) : c.json({ error: "Not found" }, 404);
+// REST → TEOB command mapping
+app.post("/api/gift-cards", async (c) => {
+  const { id, amount, recipientName } = await c.req.json();
+  const result = await runtime.ask(EntityId(id),
+    { tag: "Issue", amount, recipientName }, giftCardCategory);
+  // ... map result to REST response
 });
 
-app.get("/api/gift-cards", (c) => {
-  runProjection(giftCardProjection, journal, projectionStore, { eventCodec: giftCardEventCodec });
-  return c.json(projectionStore.list("gift-card-view").map(e => ({ id: e.viewId, ...e.view })));
+app.post("/api/gift-cards/:cardId/redeem", async (c) => {
+  const { amount } = await c.req.json();
+  const result = await runtime.ask(EntityId(c.req.param("cardId")),
+    { tag: "Redeem", amount }, giftCardCategory);
+  // ...
 });
-
-// Static frontend
-app.use("/*", serveStatic({ root: "./public" }));
 ```
 
-Three pure functions → full-stack service. Write side, read side, UI, external integrations.
+The REST layer is a thin mapping. Domain logic stays in pure functions.
+The OpenAPI spec (`openapi.yaml`) is the contract — use it to generate clients or frontends.

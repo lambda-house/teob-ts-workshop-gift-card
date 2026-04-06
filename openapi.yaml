@@ -1,0 +1,200 @@
+openapi: 3.1.0
+info:
+  title: Gift Card Service
+  description: Event-sourced gift card management API built with TEOB.
+  version: 0.1.0
+
+servers:
+  - url: http://localhost:3000
+
+paths:
+  /api/gift-cards:
+    post:
+      operationId: issueCard
+      summary: Issue a new gift card
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IssueCardRequest'
+      responses:
+        '201':
+          description: Card issued successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GiftCardView'
+        '400':
+          description: Rejected (e.g. card ID already exists)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    get:
+      operationId: listCards
+      summary: List all gift cards
+      responses:
+        '200':
+          description: Array of gift card views
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GiftCardView'
+
+  /api/gift-cards/{cardId}:
+    get:
+      operationId: getCard
+      summary: Get a single gift card
+      parameters:
+        - $ref: '#/components/parameters/cardId'
+      responses:
+        '200':
+          description: Gift card view
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GiftCardView'
+        '404':
+          description: Card not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/gift-cards/{cardId}/redeem:
+    post:
+      operationId: redeemCard
+      summary: Redeem an amount from a gift card
+      parameters:
+        - $ref: '#/components/parameters/cardId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RedeemRequest'
+      responses:
+        '200':
+          description: Redeemed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GiftCardView'
+        '400':
+          description: Rejected (not active, insufficient balance)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/gift-cards/{cardId}/cancel:
+    post:
+      operationId: cancelCard
+      summary: Cancel a gift card
+      parameters:
+        - $ref: '#/components/parameters/cardId'
+      responses:
+        '200':
+          description: Cancelled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GiftCardView'
+        '400':
+          description: Rejected (not active)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /health:
+    get:
+      operationId: healthCheck
+      summary: Health check
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+
+components:
+  parameters:
+    cardId:
+      name: cardId
+      in: path
+      required: true
+      schema:
+        type: string
+      example: card-1
+
+  schemas:
+    IssueCardRequest:
+      type: object
+      required: [id, amount, recipientName]
+      properties:
+        id:
+          type: string
+          description: Unique card identifier
+          example: card-1
+        amount:
+          type: number
+          minimum: 1
+          description: Initial balance
+          example: 100
+        recipientName:
+          type: string
+          description: Who the card is for
+          example: Alice
+
+    RedeemRequest:
+      type: object
+      required: [amount]
+      properties:
+        amount:
+          type: number
+          minimum: 1
+          description: Amount to redeem
+          example: 30
+
+    GiftCardView:
+      type: object
+      required: [id, balance, status, transactionCount]
+      properties:
+        id:
+          type: string
+          example: card-1
+        balance:
+          type: number
+          example: 70
+        status:
+          type: string
+          enum: [Empty, Active, Cancelled]
+          example: Active
+        recipientName:
+          type: string
+          example: Alice
+        encouragement:
+          type: string
+          description: AI-generated encouragement message (from LLM demo)
+          example: You deserve something special!
+        transactionCount:
+          type: integer
+          example: 1
+
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+          example: Card is not active

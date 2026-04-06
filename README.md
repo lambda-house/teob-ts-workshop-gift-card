@@ -51,14 +51,21 @@ npm start
 ```
 
 ```bash
-curl -s -X POST http://localhost:3000/api/gift-card/card-1 \
+# Issue a card
+curl -s -X POST http://localhost:3000/api/gift-cards \
   -H "Content-Type: application/json" \
-  -d '{"tag":"Issue","amount":100,"recipientName":"Alice"}'
+  -d '{"id":"card-1","amount":100,"recipientName":"Alice"}'
 
-curl -s -X POST http://localhost:3000/api/gift-card/card-1 \
+# Read it back
+curl -s http://localhost:3000/api/gift-cards/card-1
+
+# Redeem
+curl -s -X POST http://localhost:3000/api/gift-cards/card-1/redeem \
   -H "Content-Type: application/json" \
-  -d '{"tag":"GetBalance"}'
+  -d '{"amount":30}'
 ```
+
+Full API spec: `openapi.yaml`
 
 ### Exercise 2: Gift Card Projection (20 min)
 
